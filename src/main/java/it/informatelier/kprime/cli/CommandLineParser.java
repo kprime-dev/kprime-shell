@@ -53,8 +53,9 @@ class CommandLineParser {
 
     private void initCommands() {
         this.commands = new HashMap<>();
-        register(new KPAskCommand());
-        register(new KPParseCommand());
+        register(new KPGetCommand());
+        register(new KPPostCommand());
+        register(new KPPutCommand());
     }
 
     private void register(Command command) {

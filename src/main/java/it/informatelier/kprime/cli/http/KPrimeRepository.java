@@ -15,15 +15,18 @@ import java.util.Map;
 
 public class KPrimeRepository implements ModelRepository {
     LocalDateTime localDateTime = LocalDateTime.now();
-    String kprimeAddress = "http://localhost:7000/";
+    String kprimeAddress = "http://localhost:7000";
+    String contextName = "kprime";
 
     @Override
     public ModelResponse ask(ModelRequest request) {
         String question = request.getQuestion();
         if (question.startsWith("POST ")) {
-            return new ModelResponse(askKPrime("post",question.substring(5)).getResponse());
+            return new ModelResponse(askKPrime("post", question.substring(5)).getResponse());
+        } else if (question.startsWith("PUT ")) {
+                return new ModelResponse(askKPrime("put",question.substring(4)).getResponse());
         } else {
-            return new ModelResponse(askKPrime("get",question.substring(5)).getResponse());
+            return new ModelResponse(askKPrime("get",question.substring(4)).getResponse());
         }
     }
 
@@ -35,7 +38,7 @@ public class KPrimeRepository implements ModelRepository {
     // https://mkyong.com/java/java-11-httpclient-examples/
 
     private KPrimeDTO askKPrime(String requestType, String request) {
-        System.out.println(this.getClass().getName()+":askKPrime ["+request+"]");
+        //System.out.println(this.getClass().getName()+":askKPrime ["+request+"]");
         KPrimeDTO kPrimeDTO = new KPrimeDTO();
         kPrimeDTO.setRequest(request);
         // if cache is good return from cache;
@@ -44,29 +47,42 @@ public class KPrimeRepository implements ModelRepository {
         // try do a remote request to get it.
         // POST /parse command=add-table Address:city,street
         try {
-            System.out.println(this.getClass().getName()+" mapping request.");
-            Map<Object, Object> data = new HashMap<>();
-            data.put("command", request);
-
+            //System.out.println(this.getClass().getName() + " mapping request.");
+            //Map<Object, Object> data = new HashMap<>();
+            //data.put("command", request);
+            //System.out.println("KPRIME [" + requestType + "] request:[" + request + "]");
+            HttpRequest.BodyPublisher data = HttpRequest.BodyPublishers.ofString(request);
             HttpRequest httpRequest = null;
-            if (requestType.equals("post"))
-             httpRequest = HttpRequest.newBuilder()
-                    .POST(ofFormData(data))
-                    .uri(URI.create(kprimeAddress+"parse"))
-                    .setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
-                    .header("Content-Type", "application/x-www-form-urlencoded")
-                    .build();
-            else
+            if (requestType.equals("post")) {
+                String requestUri = kprimeAddress + "/parse";
+                System.out.println("KPRIME POST [" + requestUri + "] request:[" + request + "]");
                 httpRequest = HttpRequest.newBuilder()
-                        .GET()
-                        .uri(URI.create(kprimeAddress+request))
+                        .POST(data)
+                        .uri(URI.create(requestUri))
                         .setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
                         .header("Content-Type", "application/x-www-form-urlencoded")
                         .build();
-
-            System.out.println(this.getClass().getName()+"Sending POST");
+            } else if (requestType.equals("put")) {
+                String requestUri = kprimeAddress + "/expert/" + contextName + "/tracecommand";
+                System.out.println("KPRIME PUT [" + requestUri + "] request:[" + request + "]");
+                httpRequest = HttpRequest.newBuilder()
+                        .PUT(data)
+                        .uri(URI.create(requestUri))
+                        .setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
+                        .header("Content-Type", "application/json;charset=utf-8")
+                        .build();
+            } else {
+                String requestUri = kprimeAddress + request;
+                System.out.println("KPRIME GET [" + requestUri + "] ");
+                httpRequest = HttpRequest.newBuilder()
+                        .GET()
+                        .uri(URI.create(requestUri))
+                        .setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
+                        .build();
+            }
+            //System.out.println(this.getClass().getName()+"Sending "+requestType);
             HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            System.out.println(httpResponse.body());
+            //System.out.println(httpResponse.body());
             kPrimeDTO.setResponse(httpResponse.body().replaceAll("\"","").replaceAll("\\\\n", "\n"));
         } catch (Exception e) {
             e.printStackTrace();
@@ -74,8 +90,8 @@ public class KPrimeRepository implements ModelRepository {
         }
         Gson gson = new Gson();
         //Type listType = new TypeToken<ArrayList<PortfolioDTO>>(){}.getType();
-         //gson.fromJson(content.toString(), KPrimeDTO.class);
-        System.out.println(kPrimeDTO);
+        //gson.fromJson(content.toString(), KPrimeDTO.class);
+        //System.out.println(kPrimeDTO);
         return kPrimeDTO;
     }
 

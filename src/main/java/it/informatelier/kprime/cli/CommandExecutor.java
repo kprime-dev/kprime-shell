@@ -22,7 +22,8 @@ public class CommandExecutor {
         String commandLine = commandable.getCommandLine();
         if (commandLine ==null) {
             commandable.run();
-            return commandable.getResult();
+            String result = "\n--------\n"+commandable.getResult()+"\n----------\n";
+            return result;
         }
         System.out.println("execute process ["+commandLine+"]");
         return executeProcess(commandable);

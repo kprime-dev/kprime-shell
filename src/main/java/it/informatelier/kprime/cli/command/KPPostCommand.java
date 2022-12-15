@@ -3,10 +3,10 @@ package it.informatelier.kprime.cli.command;
 import it.informatelier.kprime.cli.http.KPrimeRepository;
 import it.informatelier.kprime.cli.http.ModelRequest;
 
-public class KPParseCommand extends CommandRun {
+public class KPPostCommand extends CommandRun {
     @Override
     public String getName() {
-        return "parse";
+        return "post";
     }
 
     @Override
