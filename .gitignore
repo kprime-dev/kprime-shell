@@ -1,0 +1,11 @@
+/bin/
+/target/
+mpm.ipr
+mpm.iws
+mpm.iml
+dependency-reduced-pom.xml
+.classpath
+.idea
+.settings/
+.java-version
+
