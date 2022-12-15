@@ -19,7 +19,12 @@ public class KPrimeRepository implements ModelRepository {
 
     @Override
     public ModelResponse ask(ModelRequest request) {
-        return new ModelResponse(askKPrime(request.getQuestion()).getResponse());
+        String question = request.getQuestion();
+        if (question.startsWith("POST ")) {
+            return new ModelResponse(askKPrime("post",question.substring(5)).getResponse());
+        } else {
+            return new ModelResponse(askKPrime("get",question.substring(5)).getResponse());
+        }
     }
 
     private static final HttpClient httpClient = HttpClient.newBuilder()
@@ -29,7 +34,7 @@ public class KPrimeRepository implements ModelRepository {
 
     // https://mkyong.com/java/java-11-httpclient-examples/
 
-    private KPrimeDTO askKPrime(String request) {
+    private KPrimeDTO askKPrime(String requestType, String request) {
         System.out.println(this.getClass().getName()+":askKPrime ["+request+"]");
         KPrimeDTO kPrimeDTO = new KPrimeDTO();
         kPrimeDTO.setRequest(request);
@@ -43,12 +48,21 @@ public class KPrimeRepository implements ModelRepository {
             Map<Object, Object> data = new HashMap<>();
             data.put("command", request);
 
-            HttpRequest httpRequest = HttpRequest.newBuilder()
+            HttpRequest httpRequest = null;
+            if (requestType.equals("post"))
+             httpRequest = HttpRequest.newBuilder()
                     .POST(ofFormData(data))
                     .uri(URI.create(kprimeAddress+"parse"))
                     .setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
                     .header("Content-Type", "application/x-www-form-urlencoded")
                     .build();
+            else
+                httpRequest = HttpRequest.newBuilder()
+                        .GET()
+                        .uri(URI.create(kprimeAddress+request))
+                        .setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
+                        .header("Content-Type", "application/x-www-form-urlencoded")
+                        .build();
 
             System.out.println(this.getClass().getName()+"Sending POST");
             HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
