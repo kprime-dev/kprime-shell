@@ -53,38 +53,8 @@ class CommandLineParser {
 
     private void initCommands() {
         this.commands = new HashMap<>();
-        register(NewJarCommand.getInstance());
-        register(NewWarCommand.getInstance());
-        register(NewDropwizardCommand.getInstance());
         register(new KPAskCommand());
         register(new KPParseCommand());
-        register(new ShellCommand());
-        register(new PrintCommand());
-        register(new QueryCommand());
-        register(new InitCommand());
-        register(new InitSparkjavaCommand());
-        register(new AddJava8Command());
-        register(new AddJettyCommand());
-        register(new AddJUnit4Command());
-        register(new AddSkinCommand());
-        register(new AddPdfBoxCommand());
-        register(new AddH2Command());
-        register(new AddFreemarkerCommand());
-        register(new AddSparkjavaCommand());
-        register(new AddFatJarCommand());
-        register(new InitDropwizardCommand());
-        register(new InitSpringbootCommand());
-        register(new GistJUnitCommand());
-        register(new GitJtogglCommand());
-        register(new AddSiteCommand());
-        register(new InstallCommand());
-        register(new InitGarageCommand());
-        register(new AddSlf4jCommand());
-        register(new InitSparkjavaWebCommand());
-        register(new InitJava9());
-        register(new AddToolchains());
-        register(new AddDependencyCommand());
-        register(new InitKotlinCommand());
     }
 
     private void register(Command command) {
