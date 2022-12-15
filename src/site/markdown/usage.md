@@ -8,7 +8,7 @@ define env.propeerties
 
 It could be used as single command line:
 
-    kp <args>
+    kp <kprime-command>
 
 ### Interactive
 
