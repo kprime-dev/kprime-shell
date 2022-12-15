@@ -16,7 +16,7 @@ public class KPPutCommand extends CommandRun {
 
     @Override
     public void runBody() {
-        String command =String.join(" ",getArgTokens());
+        String command = getFirstToken()+ " "+ String.join(" ",getArgTokens());
         System.out.println("KPPutCommand ["+command+"]");
         setResult(new KPrimeRepository().ask(new ModelRequest("PUT >"+command)).getAnswer());
 

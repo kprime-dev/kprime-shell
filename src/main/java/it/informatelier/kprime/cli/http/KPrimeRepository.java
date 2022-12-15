@@ -23,10 +23,10 @@ public class KPrimeRepository implements ModelRepository {
         String question = request.getQuestion();
         if (question.startsWith("POST ")) {
             return new ModelResponse(askKPrime("post", question.substring(5)).getResponse());
-        } else if (question.startsWith("PUT ")) {
-                return new ModelResponse(askKPrime("put",question.substring(4)).getResponse());
+        } else if (question.startsWith("GET ")) {
+                return new ModelResponse(askKPrime("get",question.substring(4)).getResponse());
         } else {
-            return new ModelResponse(askKPrime("get",question.substring(4)).getResponse());
+            return new ModelResponse(askKPrime("put",question.substring(4)).getResponse());
         }
     }
 

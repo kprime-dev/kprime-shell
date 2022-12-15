@@ -42,7 +42,7 @@ class CommandLineParser {
      */
     Commandable parse(String line) {
         String firstToken = line.split(" ")[0];
-        Commandable commandable = commands.get(firstToken) != null ? commands.get(firstToken) : new MvnCommand(line);
+        Commandable commandable = commands.get(firstToken) != null ? commands.get(firstToken) : new KPPutCommand();
         commandable.setCommandLine(line);
         Map<String,String> mustArgs = askRequiredArgs(commandable.getMustArgs());
         completeEnvironment(mustArgs);

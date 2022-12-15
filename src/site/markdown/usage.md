@@ -16,20 +16,22 @@ Or it could be started in interactive shell mode:
 
     kp
 
-To list all available commands, press enter, giving an empty command.
+To list all available commands, press enter, giving an empty command or type command:
 
-To end just type:
+    help
+
+To end just type command:
 
     quit
 
-To run a kprime command
+To run a kprime command just enter the command:
 
-    put <kprime-command>
+    <kprime-command>
 
 such as:
 
-    put help
-    put help topic
-    put help cmd
-    put labels
+    help topic
+    help cmd
+    labels
+    experts
 
