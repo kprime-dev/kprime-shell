@@ -78,25 +78,6 @@ public class Shell {
         System.out.println(parser.getCommandsUsage());
     }
 
-    private static void printLayout() {
-        System.out.println("Maven Standard Layout Directory");
-        System.out.println(String.format("%20s:%60s","src/main/java" ,"Application/Library sources"));
-        System.out.println(String.format("%20s:%60s","src/main/resources" ,"Application/Library resources"));
-        System.out.println(String.format("%20s:%60s","src/main/resources-filtered" ,"Application/Library resources which are filtered. (mvn 3.4.0+)"));
-        System.out.println(String.format("%20s:%60s","src/main/filters" ,"Resource filter files"));
-        System.out.println(String.format("%20s:%60s","src/main/webapp" ,"Web application sources"));
-        System.out.println(String.format("%20s:%60s","src/test/java" ,"Test sources"));
-        System.out.println(String.format("%20s:%60s","src/test/resources" ,"Test resources"));
-        System.out.println(String.format("%20s:%60s","src/test/resources-filtered" ,"Test resources  which are filtered by default. (mvn 3.4.0+)"));
-        System.out.println(String.format("%20s:%60s","src/test/filters" ,"Test resource filter files"));
-        System.out.println(String.format("%20s:%60s","src/it" ,"Integration Tests (primarily for plugins)"));
-        System.out.println(String.format("%20s:%60s","src/assembly" ,"Assembly descriptors"));
-        System.out.println(String.format("%20s:%60s","src/site" ,"Site"));
-        System.out.println(String.format("%20s:%60s","LICENSE.txt" ,"Project's license"));
-        System.out.println(String.format("%20s:%60s","NOTICE.txt" ,"Notices and attributions required by libraries that the project depends on"));
-        System.out.println(String.format("%20s:%60s","README.txt" ,"Project's readme"));
-    }
-
     private void start(String... args) throws IOException, XMLStreamException {
         Project project = openPomFile();
         localDeps = new HashMap<>();
@@ -124,29 +105,8 @@ public class Shell {
     private void askForCommandsUntilQuit(LineReader reader, CommandLineParser parser, CommandExecutor executor) throws IOException {
         String line;
         while ((line = reader.readLine(">")) != null) {
-            if (isExitCommand(line)) {
-                break;
-            }
-            if (isClearScreenCommand(line)) {
-                //reader.clearScreen();
-                continue;
-            }
-            if (isScandDependenciesCommand(line)) {
-                localDeps = openLocalDepdendencyMap(config.get("HOME")+"/.m2/");
-                ArgumentCompleter argumentCompleter = new ArgumentCompleter(
-                        new StringsCompleter(localDeps.keySet())
-                );
-                reader = LineReaderBuilder.builder().completer(argumentCompleter).build();
-                continue;
-            }
-            if (isHelpCommand(line)) {
-                printUsage(parser);
-                continue;
-            }
-            if (isLayoutCommand(line)) {
-                printLayout();
-                continue;
-            }
+            if (isExitCommand(line)) { break;}
+            if (isHelpCommand(line)) { printUsage(parser); continue; }
             Commandable command = parser.parse(line);
             if (command!=null) {
               printCommandLineResult(command.getCommandLine(),executor.execute(command));
@@ -197,14 +157,6 @@ public class Shell {
                 new StringsCompleter(localDeps.keySet())
         );
         reader = LineReaderBuilder.builder().completer(argumentCompleter).build();
-    }
-
-    private boolean isClearScreenCommand(String command) {
-        return "cls".equalsIgnoreCase(command);
-    }
-
-    private boolean isScandDependenciesCommand(String command) {
-        return "scan".equalsIgnoreCase(command);
     }
 
     private boolean isExitCommand(String command) {

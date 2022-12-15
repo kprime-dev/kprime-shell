@@ -56,6 +56,7 @@ class CommandLineParser {
         register(NewJarCommand.getInstance());
         register(NewWarCommand.getInstance());
         register(NewDropwizardCommand.getInstance());
+        register(new ParseCommand());
         register(new ShellCommand());
         register(new PrintCommand());
         register(new QueryCommand());
