@@ -7,19 +7,14 @@ import org.jline.reader.impl.completer.ArgumentCompleter;
 import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.widget.AutosuggestionWidgets;
 
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import java.io.*;
-import java.net.ConnectException;
 import java.util.*;
 
 
 public class Shell {
-    private static Config config = new Config();
-    private static Map<String,String> localDeps;
-    private static Properties cliResourceProperties = new Properties();
-    private static Properties cliHomeProperties = new Properties();
+    private static final Config config = new Config();
+    private static final Properties cliResourceProperties = new Properties();
+    private static final Properties cliHomeProperties = new Properties();
 
     public static void main(String[] args) {
         Shell shell = new Shell();
@@ -34,7 +29,7 @@ public class Shell {
                 System.err.println("fatal error env KPRIME_HOME not set.");
                 return;
             }
-            if (cli_home!=null) cliHomeProperties.load(new FileReader(cli_home+"cli.properties"));
+            cliHomeProperties.load(new FileReader(cli_home+"cli.properties"));
             System.out.println("KPRIME HOME:["+cli_home+"] with "+ cliHomeProperties.size()+" properties.");
             shell.start(args);
         } catch (Exception e) {
@@ -42,53 +37,20 @@ public class Shell {
         }
     }
 
-    Project parseProjectTokens(XMLStreamReader reader) {
-        Project project = new Project();
-        if (reader==null) return project;
-        String lastToken = null;
-        try {
-            while (reader.hasNext()) {
-                reader.next();
-                if (reader.isStartElement()) {
-                    lastToken = getLastToken(reader, project);
-                }
-                if (reader.hasText()) {
-                    setTokenValue(reader, project, lastToken);
-                }
-            }
-        } catch (XMLStreamException e) {
-            return new Project();
-        }
-        System.out.println("POM with "+project.getTokens().size()+" tokens read.");
-        return project;
-    }
-
-    XMLStreamReader getXmlStreamReader(InputStream stream) throws XMLStreamException {
-        XMLInputFactory xmlInFact = XMLInputFactory.newInstance();
-        return xmlInFact.createXMLStreamReader(stream);
-    }
-
     private static void printUsage(CommandLineParser parser) {
         System.out.println(cliResourceProperties.getProperty("mpm.name")+" version: "+ cliResourceProperties.getProperty("mpm.version"));
         System.out.println("Mvn bin path: ["+parser.getMvnBinPath()+"]");
         System.out.println("Home path: ["+config.get("HOME")+"]");
-        System.out.println("Locals deps: ["+localDeps.size()+"]");
         System.out.println("Usage: java -jar mpm*.jar");
         System.out.println("  it looks for a pom.xml file in current directory.");
-        System.out.println("");
+        System.out.println();
         System.out.println("  Type 'quit' to terminate the mpm program.");
         System.out.println(parser.getCommandsUsage());
     }
 
-    private void start(String... args) throws IOException, XMLStreamException {
-        localDeps = new HashMap<>();
-        LineReader reader = readerWithOptions(List.of("help", "help topic", "help cmd", "quit", "info", "info-context", "log","properties"));
-        listenForConsoleCommand(reader, args);
-    }
-
-    private void listenForConsoleCommand(LineReader reader, String... args) throws IOException {
+    private void start(String... args) {
+        LineReader reader = readerWithOptions(null, List.of("help", "help topic", "help cmd", "quit", "info", "info-context", "log","properties"));
         CommandLineParser parser = new CommandLineParser(config,reader);
-        addCompletorsToConsole(reader, parser);
         CommandExecutor executor = new CommandExecutor(config);
         if (thereAreArguments(args)) executeSingleCommand(parser, executor, args);
         else askForCommandsUntilQuit(reader, parser, executor);
@@ -98,7 +60,7 @@ public class Shell {
         return args!=null && args.length>0;
     }
 
-    private void askForCommandsUntilQuit(LineReader reader, CommandLineParser parser, CommandExecutor executor) throws IOException {
+    private void askForCommandsUntilQuit(LineReader reader, CommandLineParser parser, CommandExecutor executor) {
         String line;
         LineReader currentReader = reader;
         while ((line = currentReader.readLine(">")) != null) {
@@ -117,9 +79,7 @@ public class Shell {
                 if (command != null) {
                     Commandable commandExecuted = executor.execute(command);
                     String executeResult = commandExecuted.getResult();
-//                if (!commandExecuted.getOptsArgs().isEmpty())
-//                currentReader = readerWithOptions(commandExecuted.getOptsArgs());
-                    //currentReader = readerWithOptions(List.of("alfa","beta"));
+                    //currentReader = readerWithOptions(currentReader,List.of("alfa","beta"));
                     printCommandLineResult(commandExecuted.getCommandLine(), executeResult);
                     printCommandLineOptions(commandExecuted.getOptsArgs());
                 }
@@ -134,7 +94,8 @@ public class Shell {
         System.out.println("["+a+"]=["+b+"]");
     }
 
-    private LineReader readerWithOptions(List<String> optsArgs) {
+    private LineReader readerWithOptions(LineReader currentReader,List<String> optsArgs) {
+        if (optsArgs==null) return currentReader;
         ArgumentCompleter completer = new ArgumentCompleter(
                 new StringsCompleter(optsArgs));
         LineReader reader = LineReaderBuilder.builder().completer(completer).build();
@@ -151,7 +112,6 @@ public class Shell {
         if (commandExecuted!=null) {
           printCommandLineResult(commandExecuted.getCommandLine(),commandExecuted.getResult());
         }
-        return;
     }
 
     private void printCommandLineOptions(List<String> optsArgs) {
@@ -177,20 +137,10 @@ public class Shell {
     }
 
     private String buildCommandLineFromArgs(String[] args) {
-        String line = "";
-        for (int i=0;i<args.length;i++) line += args[i]+" ";
+        StringBuilder line = new StringBuilder();
+        for (String arg : args) line.append(arg).append(" ");
         System.out.println(">>>["+line+"]");
-        return line;
-    }
-
-    private void addCompletorsToConsole(LineReader reader, CommandLineParser commandLineParser) {
-        if (commandLineParser == null) return;
-        if (reader == null) return;
-        ArgumentCompleter argumentCompleter = new ArgumentCompleter(
-                new StringsCompleter(commandLineParser.getCommandNameList()),
-                new StringsCompleter(localDeps.keySet())
-        );
-        reader = LineReaderBuilder.builder().completer(argumentCompleter).build();
+        return line.toString();
     }
 
     private boolean isExitCommand(String command) {
@@ -203,35 +153,6 @@ public class Shell {
 
     private boolean isPropertiesCommand(String command) {
         return "properties".equalsIgnoreCase(command.trim());
-    }
-
-    private XMLStreamReader silentGetXmlStreamReader(FileInputStream fis) {
-        if (fis==null) return null;
-        XMLStreamReader reader = null;
-        try {
-            reader = getXmlStreamReader(fis);
-        } catch (XMLStreamException e) {
-            // silent
-        }
-        return reader;
-    }
-
-    private void setTokenValue(XMLStreamReader reader, Project project, String lastToken) {
-        if (hasTokenValue(reader, lastToken)) {
-            project.addValue(lastToken, reader.getText());
-        }
-    }
-
-    private String getLastToken(XMLStreamReader reader, Project project) {
-        String lastToken;
-
-        project.addToken(reader.getLocalName());
-        lastToken = reader.getLocalName();
-        return lastToken;
-    }
-
-    private boolean hasTokenValue(XMLStreamReader reader, String lastToken) {
-        return lastToken != null && reader.isCharacters() && !reader.isWhiteSpace();
     }
 
 }
