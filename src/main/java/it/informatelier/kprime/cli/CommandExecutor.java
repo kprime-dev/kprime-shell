@@ -5,6 +5,9 @@ import it.informatelier.kprime.cli.command.Commandable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Execute on host operation system a Command.
@@ -17,17 +20,25 @@ public class CommandExecutor {
         this.config = config;
     }
 
-    String execute(Commandable commandable) {
-        if (commandable==null) return "no commandable.";
+    Commandable execute(Commandable commandable) {
+        if (commandable==null) return null;
         String commandLine = commandable.getCommandLine();
-        if (commandLine ==null) {
-            commandable.run();
-            String message = extractMessage(commandable.getResult());
-            String result = "\n--------\n"+message.replace("\\t",":::")+"\n----------\n";
-            return result;
-        }
-        System.out.println("execute process ["+commandLine+"]");
-        return executeProcess(commandable);
+        commandable.run();
+        String message = extractMessage(commandable.getResult());
+        List<String> options = extractOptions(commandable.getResult());
+        String result = "\n--------\n"+message.replace("\\t",":::")+"\n----------\n";
+        commandable.setOptsArgs(options);
+        commandable.setResult(result);
+        return commandable;
+    }
+
+    private List<String> extractOptions(String result) {
+        int msgStart = result.indexOf("options:[")+9;
+        int msgEnd = result.indexOf("],ok:");
+        List<String> options = null;
+        if (msgStart>7 && msgEnd>msgStart) options = Arrays.asList(result.substring(msgStart,msgEnd).split(","));
+        else options = new ArrayList<>();
+        return options;
     }
 
     private String extractMessage(String result) {

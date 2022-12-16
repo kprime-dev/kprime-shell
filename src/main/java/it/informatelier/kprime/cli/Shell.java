@@ -14,6 +14,7 @@ import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class Shell {
@@ -82,12 +83,7 @@ public class Shell {
     private void start(String... args) throws IOException, XMLStreamException {
         Project project = openPomFile();
         localDeps = new HashMap<>();
-
-        ArgumentCompleter completer = new ArgumentCompleter(
-                new StringsCompleter("help", "help topic", "help cmd", "quit"));
-        LineReader reader = LineReaderBuilder.builder().completer(completer).build();
-        AutosuggestionWidgets autosuggestionWidgets = new AutosuggestionWidgets(reader);
-        autosuggestionWidgets.enable();
+        LineReader reader = readerWithOptions(List.of("help", "help topic", "help cmd", "quit", "info", "info-context", "log"));
         listenForConsoleCommand(reader, project, args);
     }
 
@@ -110,24 +106,45 @@ public class Shell {
 
     private void askForCommandsUntilQuit(LineReader reader, CommandLineParser parser, CommandExecutor executor) throws IOException {
         String line;
-        while ((line = reader.readLine(">")) != null) {
+        LineReader currentReader = reader;
+        while ((line = currentReader.readLine(">")) != null) {
             if (isExitCommand(line)) { break;}
             if (isHelpCommand(line)) { printUsage(parser); continue; }
             Commandable command = parser.parse(line);
             if (command!=null) {
-              printCommandLineResult(command.getCommandLine(),executor.execute(command));
+                Commandable commandExecuted = executor.execute(command);
+                String executeResult = commandExecuted.getResult();
+//                if (!commandExecuted.getOptsArgs().isEmpty())
+//                currentReader = readerWithOptions(commandExecuted.getOptsArgs());
+                //currentReader = readerWithOptions(List.of("alfa","beta"));
+                printCommandLineResult(commandExecuted.getCommandLine(),executeResult);
+                printCommandLineOptions(commandExecuted.getOptsArgs());
             }
         }
+    }
+
+    private LineReader readerWithOptions(List<String> optsArgs) {
+        ArgumentCompleter completer = new ArgumentCompleter(
+                new StringsCompleter(optsArgs));
+        LineReader reader = LineReaderBuilder.builder().completer(completer).build();
+        AutosuggestionWidgets autosuggestionWidgets = new AutosuggestionWidgets(reader);
+        autosuggestionWidgets.enable();
+        return reader;
     }
 
     private void executeSingleCommand(CommandLineParser parser, CommandExecutor executor, String[] args) {
         System.out.println("Single command execution.");
         String line = buildCommandLineFromArgs(args);
         Commandable command = parser.parse(line);
-        if (command!=null) {
-          printCommandLineResult(command.getCommandLine(),executor.execute(command));
+        Commandable commandExecuted = executor.execute(command);
+        if (commandExecuted!=null) {
+          printCommandLineResult(commandExecuted.getCommandLine(),commandExecuted.getResult());
         }
         return;
+    }
+
+    private void printCommandLineOptions(List<String> optsArgs) {
+        optsArgs.forEach(System.out::println);
     }
 
     private void printCommandLineResult(String commandLine,String output) {
