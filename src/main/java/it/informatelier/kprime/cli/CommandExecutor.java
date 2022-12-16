@@ -22,7 +22,7 @@ public class CommandExecutor {
         String commandLine = commandable.getCommandLine();
         if (commandLine ==null) {
             commandable.run();
-            String result = "\n--------\n"+commandable.getResult()+"\n----------\n";
+            String result = "\n--------\n"+commandable.getResult().replace("\\t",":::")+"\n----------\n";
             return result;
         }
         System.out.println("execute process ["+commandLine+"]");
