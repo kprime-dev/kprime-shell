@@ -5,6 +5,7 @@ import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.impl.completer.ArgumentCompleter;
 import org.jline.reader.impl.completer.StringsCompleter;
+import org.jline.widget.AutosuggestionWidgets;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -81,7 +82,13 @@ public class Shell {
     private void start(String... args) throws IOException, XMLStreamException {
         Project project = openPomFile();
         localDeps = new HashMap<>();
-        LineReader reader = LineReaderBuilder.builder().build();
+
+        ArgumentCompleter completer = new ArgumentCompleter(
+                new StringsCompleter("help", "help topic"),
+                new StringsCompleter("quit"));
+        LineReader reader = LineReaderBuilder.builder().completer(completer).build();
+        AutosuggestionWidgets autosuggestionWidgets = new AutosuggestionWidgets(reader);
+        autosuggestionWidgets.enable();
         listenForConsoleCommand(reader, project, args);
     }
 
