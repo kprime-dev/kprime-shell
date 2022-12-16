@@ -84,8 +84,7 @@ public class Shell {
         localDeps = new HashMap<>();
 
         ArgumentCompleter completer = new ArgumentCompleter(
-                new StringsCompleter("help", "help topic"),
-                new StringsCompleter("quit"));
+                new StringsCompleter("help", "help topic", "help cmd", "quit"));
         LineReader reader = LineReaderBuilder.builder().completer(completer).build();
         AutosuggestionWidgets autosuggestionWidgets = new AutosuggestionWidgets(reader);
         autosuggestionWidgets.enable();
@@ -167,11 +166,11 @@ public class Shell {
     }
 
     private boolean isExitCommand(String command) {
-        return "quit".equalsIgnoreCase(command);
+        return command.trim().equalsIgnoreCase("quit");
     }
 
     private boolean isHelpCommand(String command) {
-        return "help".equalsIgnoreCase(command) || "usage".equalsIgnoreCase(command) || "".equals(command) ;
+        return "help".equalsIgnoreCase(command.trim()) || "".equals(command.trim()) ;
     }
 
     private boolean isLayoutCommand(String command) {
