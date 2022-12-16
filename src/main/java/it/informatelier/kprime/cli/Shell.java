@@ -11,30 +11,30 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.*;
-import java.net.ConnectException;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 public class Shell {
     private static Config config = new Config();
     private static Map<String,String> localDeps;
-    private static Properties mpmProperties = new Properties();
-    private static Properties envProperties = new Properties();
+    private static Properties cliResourceProperties = new Properties();
+    private static Properties cliHomeProperties = new Properties();
 
     public static void main(String[] args) {
         Shell shell = new Shell();
         try {
-            mpmProperties.load(Shell.class.getResourceAsStream("/mpm.properties"));
-            String mpm_home = System.getenv("KPRIME_HOME");
-            if (mpm_home==null) {
+            cliResourceProperties.load(Shell.class.getResourceAsStream("/cli_resource.properties"));
+            String cli_home = System.getenv("KPRIME_HOME");
+            String cliVersion = cliResourceProperties.getProperty("cli.version");
+            String cliGroupId = cliResourceProperties.getProperty("cli.group");
+            String cliArtifactId = cliResourceProperties.getProperty("cli.artifact");
+            System.out.println("KPRIME CLI ["+cliGroupId+"."+cliArtifactId+"] version ["+ cliVersion +"]");
+            if (cli_home==null) {
                 System.err.println("fatal error env KPRIME_HOME not set.");
                 return;
             }
-            if (mpm_home!=null) envProperties.load(new FileReader(mpm_home+"env.properties"));
-            System.out.println("KP HOME:["+mpm_home+"] with "+envProperties.size()+" properties.");
+            if (cli_home!=null) cliHomeProperties.load(new FileReader(cli_home+"cli.properties"));
+            System.out.println("KPRIME HOME:["+cli_home+"] with "+ cliHomeProperties.size()+" properties.");
             shell.start(args);
         } catch (IOException e) {
             e.printStackTrace();
@@ -70,7 +70,7 @@ public class Shell {
     }
 
     private static void printUsage(CommandLineParser parser) {
-        System.out.println(mpmProperties.getProperty("mpm.name")+" version: "+mpmProperties.getProperty("mpm.version"));
+        System.out.println(cliResourceProperties.getProperty("mpm.name")+" version: "+ cliResourceProperties.getProperty("mpm.version"));
         System.out.println("Mvn bin path: ["+parser.getMvnBinPath()+"]");
         System.out.println("Home path: ["+config.get("HOME")+"]");
         System.out.println("Locals deps: ["+localDeps.size()+"]");
@@ -82,18 +82,12 @@ public class Shell {
     }
 
     private void start(String... args) throws IOException, XMLStreamException {
-        Project project = openPomFile();
         localDeps = new HashMap<>();
-        LineReader reader = readerWithOptions(List.of("help", "help topic", "help cmd", "quit", "info", "info-context", "log"));
-        listenForConsoleCommand(reader, project, args);
+        LineReader reader = readerWithOptions(List.of("help", "help topic", "help cmd", "quit", "info", "info-context", "log","properties"));
+        listenForConsoleCommand(reader, args);
     }
 
-    private LineReader getNewConsoleReader() throws IOException {
-        LineReader reader = LineReaderBuilder.builder().build();
-        return reader;
-    }
-
-    private void listenForConsoleCommand(LineReader reader, Project project, String... args) throws IOException {
+    private void listenForConsoleCommand(LineReader reader, String... args) throws IOException {
         CommandLineParser parser = new CommandLineParser(config,reader);
         addCompletorsToConsole(reader, parser);
         CommandExecutor executor = new CommandExecutor(config);
@@ -112,6 +106,10 @@ public class Shell {
                 if (isExitCommand(line)) {
                     break;
                 }
+                if (isPropertiesCommand(line)) {
+                    printHomeProperties();
+                    continue;
+                }
                 if (isHelpCommand(line)) {
                     printUsage(parser);
                     continue;
@@ -127,6 +125,14 @@ public class Shell {
                     printCommandLineOptions(commandExecuted.getOptsArgs());
                 }
         }
+    }
+
+    private void printHomeProperties() {
+        cliHomeProperties.forEach(Shell::printPair);
+    }
+
+    private static void printPair(Object a, Object b) {
+        System.out.println("["+a+"]=["+b+"]");
     }
 
     private LineReader readerWithOptions(List<String> optsArgs) {
@@ -196,8 +202,8 @@ public class Shell {
         return "help".equalsIgnoreCase(command.trim()) || "".equals(command.trim()) ;
     }
 
-    private boolean isLayoutCommand(String command) {
-        return "layout".equals(command);
+    private boolean isPropertiesCommand(String command) {
+        return "properties".equalsIgnoreCase(command.trim());
     }
 
     private XMLStreamReader silentGetXmlStreamReader(FileInputStream fis) {
@@ -209,39 +215,6 @@ public class Shell {
             // silent
         }
         return reader;
-    }
-
-    private Project openPomFile() {
-        FileInputStream fis = null;
-        try {
-            fis = new FileInputStream("pom.xml");
-        } catch (FileNotFoundException e) {
-            return null;
-        }
-        XMLStreamReader reader = silentGetXmlStreamReader(fis);
-        return parseProjectTokens(reader);
-    }
-
-    private Map<String,String> openLocalDepdendencyMap(String localRepoPath) {
-        Path directory = Paths.get(localRepoPath);
-        Map<String,String> all = new HashMap<>();
-        try {
-            Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
-                        throws IOException {
-                    if (file.getFileName().toString().endsWith("jar")) {
-                        System.out.print("#");
-                        all.put("add-dependency "+file.getFileName().toString(),file.getParent().toString());
-                    }
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-            System.out.print(".");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return all;
     }
 
     private void setTokenValue(XMLStreamReader reader, Project project, String lastToken) {
