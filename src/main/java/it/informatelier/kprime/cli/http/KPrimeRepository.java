@@ -85,7 +85,8 @@ public class KPrimeRepository implements ModelRepository {
             //System.out.println(httpResponse.body());
             kPrimeDTO.setResponse(httpResponse.body().replaceAll("\"","").replaceAll("\\\\n", "\n"));
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+            System.out.println(e.getCause().toString());
             return new KPrimeDTO();
         }
         Gson gson = new Gson();

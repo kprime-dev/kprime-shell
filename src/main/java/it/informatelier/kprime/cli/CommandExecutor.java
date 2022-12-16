@@ -26,11 +26,13 @@ public class CommandExecutor {
         try {
             commandable.run();
             String commandResult = commandable.getResult();
-            String message = extractMessage(commandResult);
-            List<String> options = extractOptions(commandResult);
-            String result = "\n--------\n" + message.replace("\\t", ":::") + "\n----------\n";
-            commandable.setOptsArgs(options);
-            commandable.setResult(result);
+            if (commandResult!=null) {
+                String message = extractMessage(commandResult);
+                List<String> options = extractOptions(commandResult);
+                String result = "\n--------\n" + message.replace("\\t", ":::") + "\n----------\n";
+                commandable.setOptsArgs(options);
+                commandable.setResult(result);
+            } else commandable.setResult("No result.");
         } catch (Exception e) {
             commandable.setResult(e.getMessage());
         }
@@ -55,39 +57,4 @@ public class CommandExecutor {
         return message;
     }
 
-    private String executeProcess(Commandable commandable) {
-        String output = "";
-        try {
-            String[] env = {
-                    "JAVA_HOME="+config.get("JAVA_HOME")
-            };
-            Process p = Runtime.getRuntime().exec(commandable.getCommandLine(), env);
-            InputStream inputStream = p.getInputStream();
-            InputStream errorStream = p.getErrorStream();
-            OutputStream stdOutput = p.getOutputStream();
-
-            ThreadedStreamHandler inputStreamHandler = new ThreadedStreamHandler(inputStream, stdOutput);
-            ThreadedStreamHandler errorStreamHandler = new ThreadedStreamHandler(errorStream);
-            inputStreamHandler.start();
-            errorStreamHandler.start();
-            try {
-                p.waitFor();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            inputStreamHandler.interrupt();
-            errorStreamHandler.interrupt();
-            try {
-                inputStreamHandler.join();
-                errorStreamHandler.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            output += inputStreamHandler.getOutputBuffer().toString();
-            output += errorStreamHandler.getOutputBuffer().toString();
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
-        }
-        return output;
-    }
 }

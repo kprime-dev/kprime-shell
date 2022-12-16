@@ -11,6 +11,7 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.*;
+import java.net.ConnectException;
 import java.util.*;
 
 
@@ -36,9 +37,7 @@ public class Shell {
             if (cli_home!=null) cliHomeProperties.load(new FileReader(cli_home+"cli.properties"));
             System.out.println("KPRIME HOME:["+cli_home+"] with "+ cliHomeProperties.size()+" properties.");
             shell.start(args);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (XMLStreamException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -156,7 +155,7 @@ public class Shell {
     }
 
     private void printCommandLineOptions(List<String> optsArgs) {
-        optsArgs.forEach(System.out::println);
+        if (optsArgs!=null) optsArgs.forEach(System.out::println);
     }
 
     private void printCommandLineResult(String commandLine,String output) {
