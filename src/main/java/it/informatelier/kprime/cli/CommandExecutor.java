@@ -22,11 +22,21 @@ public class CommandExecutor {
         String commandLine = commandable.getCommandLine();
         if (commandLine ==null) {
             commandable.run();
-            String result = "\n--------\n"+commandable.getResult().replace("\\t",":::")+"\n----------\n";
+            String message = extractMessage(commandable.getResult());
+            String result = "\n--------\n"+message.replace("\\t",":::")+"\n----------\n";
             return result;
         }
         System.out.println("execute process ["+commandLine+"]");
         return executeProcess(commandable);
+    }
+
+    private String extractMessage(String result) {
+        int msgStart = result.indexOf("message:")+8;
+        int msgEnd = result.indexOf(",messageType:");
+        String message = null;
+        if (msgStart>7 && msgEnd>msgStart) message = result.substring(msgStart,msgEnd);
+        else message = result;
+        return message;
     }
 
     private String executeProcess(Commandable commandable) {
