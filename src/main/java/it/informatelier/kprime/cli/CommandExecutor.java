@@ -23,12 +23,17 @@ public class CommandExecutor {
     Commandable execute(Commandable commandable) {
         if (commandable==null) return null;
         String commandLine = commandable.getCommandLine();
-        commandable.run();
-        String message = extractMessage(commandable.getResult());
-        List<String> options = extractOptions(commandable.getResult());
-        String result = "\n--------\n"+message.replace("\\t",":::")+"\n----------\n";
-        commandable.setOptsArgs(options);
-        commandable.setResult(result);
+        try {
+            commandable.run();
+            String commandResult = commandable.getResult();
+            String message = extractMessage(commandResult);
+            List<String> options = extractOptions(commandResult);
+            String result = "\n--------\n" + message.replace("\\t", ":::") + "\n----------\n";
+            commandable.setOptsArgs(options);
+            commandable.setResult(result);
+        } catch (Exception e) {
+            commandable.setResult(e.getMessage());
+        }
         return commandable;
     }
 

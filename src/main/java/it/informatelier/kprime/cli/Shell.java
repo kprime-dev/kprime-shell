@@ -11,6 +11,7 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.*;
+import java.net.ConnectException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
@@ -108,18 +109,23 @@ public class Shell {
         String line;
         LineReader currentReader = reader;
         while ((line = currentReader.readLine(">")) != null) {
-            if (isExitCommand(line)) { break;}
-            if (isHelpCommand(line)) { printUsage(parser); continue; }
-            Commandable command = parser.parse(line);
-            if (command!=null) {
-                Commandable commandExecuted = executor.execute(command);
-                String executeResult = commandExecuted.getResult();
+                if (isExitCommand(line)) {
+                    break;
+                }
+                if (isHelpCommand(line)) {
+                    printUsage(parser);
+                    continue;
+                }
+                Commandable command = parser.parse(line);
+                if (command != null) {
+                    Commandable commandExecuted = executor.execute(command);
+                    String executeResult = commandExecuted.getResult();
 //                if (!commandExecuted.getOptsArgs().isEmpty())
 //                currentReader = readerWithOptions(commandExecuted.getOptsArgs());
-                //currentReader = readerWithOptions(List.of("alfa","beta"));
-                printCommandLineResult(commandExecuted.getCommandLine(),executeResult);
-                printCommandLineOptions(commandExecuted.getOptsArgs());
-            }
+                    //currentReader = readerWithOptions(List.of("alfa","beta"));
+                    printCommandLineResult(commandExecuted.getCommandLine(), executeResult);
+                    printCommandLineOptions(commandExecuted.getOptsArgs());
+                }
         }
     }
 
