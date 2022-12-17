@@ -77,6 +77,9 @@ public class Shell {
                 }
                 Commandable command = parser.parse(line);
                 if (command != null) {
+                    command.setMustArgs(Map.of(
+                            Commandable.must_arg_context, cliHomeProperties.getProperty(Commandable.must_arg_context,""), //e.g. "kprime"
+                            Commandable.must_arg_address, cliHomeProperties.getProperty(Commandable.must_arg_address,""))); //e.g. "http://localhost:7000"
                     Commandable commandExecuted = executor.execute(command);
                     String executeResult = commandExecuted.getResult();
                     //currentReader = readerWithOptions(currentReader,List.of("alfa","beta"));

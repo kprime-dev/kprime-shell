@@ -5,6 +5,9 @@ import java.util.Map;
 
 public interface Commandable extends Runnable {
 
+    final String must_arg_address = "server-address";
+    final String must_arg_context = "context";
+
     void setEnvironment(Map<String, String> environment);
 
     Map<String, String> getEnvironment();
