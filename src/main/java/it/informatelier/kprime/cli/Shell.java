@@ -20,21 +20,25 @@ public class Shell {
         Shell shell = new Shell();
         try {
             cliResourceProperties.load(Shell.class.getResourceAsStream("/cli_resource.properties"));
-            String cli_home = System.getenv("KPRIME_HOME");
+
             String cliVersion = cliResourceProperties.getProperty("cli.version");
             String cliGroupId = cliResourceProperties.getProperty("cli.group");
             String cliArtifactId = cliResourceProperties.getProperty("cli.artifact");
             System.out.println("KPRIME CLI ["+cliGroupId+"."+cliArtifactId+"] version ["+ cliVersion +"]");
-            if (cli_home==null) {
+            if (shell.getCliHome()==null) {
                 System.err.println("fatal error env KPRIME_HOME not set.");
                 return;
             }
-            cliHomeProperties.load(new FileReader(cli_home+"cli.properties"));
-            System.out.println("KPRIME HOME:["+cli_home+"] with "+ cliHomeProperties.size()+" properties.");
+            cliHomeProperties.load(new FileReader(shell.getCliHome()+"cli.properties"));
+            System.out.println("KPRIME HOME:["+shell.getCliHome()+"] with "+ cliHomeProperties.size()+" properties.");
             shell.start(args);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private String getCliHome() {
+        return System.getenv("KPRIME_HOME");
     }
 
     private static void printUsage(CommandLineParser parser) {
@@ -49,7 +53,9 @@ public class Shell {
     }
 
     private void start(String... args) {
-        LineReader reader = readerWithOptions(null, List.of("help", "help topic", "help cmd", "quit", "info", "info-context", "log","properties"));
+        LineReader reader = readerWithOptions(null,
+                List.of("help", "help topic", "help cmd", "quit", "info", "info-context", "log",
+                        "properties","properties-add","properties-rem"));
         CommandLineParser parser = new CommandLineParser(config,reader);
         CommandExecutor executor = new CommandExecutor(config);
         if (thereAreArguments(args)) executeSingleCommand(parser, executor, args);
@@ -69,6 +75,18 @@ public class Shell {
                 }
                 if (isPropertiesCommand(line)) {
                     printHomeProperties();
+                    continue;
+                }
+                if (isAddPropertiesCommand(line)) {
+                    String[] tokens = line.split(" ");
+                    cliHomeProperties.setProperty(tokens[1],tokens[2]);
+                    saveHomeProperty();
+                    continue;
+                }
+                if (isRemovePropertiesCommand(line)) {
+                    String[] tokens = line.split(" ");
+                    cliHomeProperties.remove(tokens[1]);
+                    saveHomeProperty();
                     continue;
                 }
                 if (isHelpCommand(line)) {
@@ -158,4 +176,20 @@ public class Shell {
         return "properties".equalsIgnoreCase(command.trim());
     }
 
+    private boolean isAddPropertiesCommand(String command) {
+        return command.trim().startsWith("properties-add");
+
+    }
+
+    private boolean isRemovePropertiesCommand(String command) {
+        return command.trim().startsWith("properties-rem");
+    }
+
+    private void saveHomeProperty() {
+        try {
+            cliHomeProperties.store(new FileWriter(getCliHome()+"cli.properties"), "#");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
