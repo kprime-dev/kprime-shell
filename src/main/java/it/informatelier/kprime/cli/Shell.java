@@ -15,6 +15,7 @@ public class Shell {
     private static final Config config = new Config();
     private static final Properties cliResourceProperties = new Properties();
     private static final Properties cliHomeProperties = new Properties();
+    private String propertyAddCommand = "properties-add";
 
     public static void main(String[] args) {
         Shell shell = new Shell();
@@ -78,14 +79,15 @@ public class Shell {
                     continue;
                 }
                 if (isAddPropertiesCommand(line)) {
-                    String[] tokens = line.split(" ");
-                    cliHomeProperties.setProperty(tokens[1],tokens[2]);
+                    String lineWithoutCommandPrefix = line.substring(propertyAddCommand.length()+1);
+                    String[] tokens = lineWithoutCommandPrefix.split("=");
+                    cliHomeProperties.setProperty(tokens[0].trim(),tokens[1].trim());
                     saveHomeProperty();
                     continue;
                 }
                 if (isRemovePropertiesCommand(line)) {
                     String[] tokens = line.split(" ");
-                    cliHomeProperties.remove(tokens[1]);
+                    cliHomeProperties.remove(tokens[1].trim());
                     saveHomeProperty();
                     continue;
                 }
@@ -96,8 +98,8 @@ public class Shell {
                 Commandable command = parser.parse(line);
                 if (command != null) {
                     command.setMustArgs(Map.of(
-                            Commandable.must_arg_context, cliHomeProperties.getProperty(Commandable.must_arg_context,""), //e.g. "kprime"
-                            Commandable.must_arg_address, cliHomeProperties.getProperty(Commandable.must_arg_address,""))); //e.g. "http://localhost:7000"
+                            Commandable.must_arg_context, getContextProperty(), //e.g. "kprime"
+                            Commandable.must_arg_address, getAddressProperty())); //e.g. "http://localhost:7000"
                     Commandable commandExecuted = executor.execute(command);
                     String executeResult = commandExecuted.getResult();
                     //currentReader = readerWithOptions(currentReader,List.of("alfa","beta"));
@@ -105,6 +107,15 @@ public class Shell {
                     printCommandLineOptions(commandExecuted.getOptsArgs());
                 }
         }
+    }
+
+    private String getAddressProperty() {
+        String serverName = cliHomeProperties.getProperty(Commandable.must_arg_server_name, "");
+        return cliHomeProperties.getProperty(serverName, "");
+    }
+
+    private String getContextProperty() {
+        return cliHomeProperties.getProperty(Commandable.must_arg_context, "");
     }
 
     private void printHomeProperties() {
@@ -177,7 +188,7 @@ public class Shell {
     }
 
     private boolean isAddPropertiesCommand(String command) {
-        return command.trim().startsWith("properties-add");
+        return command.trim().startsWith(propertyAddCommand);
 
     }
 

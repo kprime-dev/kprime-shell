@@ -5,6 +5,7 @@ import java.util.Map;
 
 public interface Commandable extends Runnable {
 
+    final String must_arg_server_name = "server-name";
     final String must_arg_address = "server-address";
     final String must_arg_context = "context";
 

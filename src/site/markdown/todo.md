@@ -2,6 +2,7 @@
 
 ### version 1.0.0
 
++ user server.name to choose current server.address
 + set user credentials.
 + list server contexts.
 + set context.

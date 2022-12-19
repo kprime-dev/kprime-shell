@@ -19,11 +19,11 @@ public class KPGetCommand extends CommandRun {
         String address = getMustArgs().get(must_arg_address);
         String context = getMustArgs().get(must_arg_context);
         if (address==null || address.isEmpty()) {
-            setResult("No required "+must_arg_address+" in properties.");
+            setResult("No required "+must_arg_address+" in GET properties.");
             return;
         }
         if (context==null || context.isEmpty()) {
-            setResult("No required "+must_arg_context+" in properties.");
+            setResult("No required "+must_arg_context+" in GET properties.");
             return;
         }
         setResult(new KPrimeProxy().ask(address,context,
