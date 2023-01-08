@@ -104,4 +104,19 @@ public class KPrimeProxy {
     }
      */
 
+    public void putDoc(String address, String context, String trace, String fileName, String docText) {
+        // read local file
+        // traceFileContent
+        // put text
+        // this.$http.put('/context/'+this.currentProject+'/tracesave/'+traceDir+underDir+"/"+fileName,traceFileContent)
+        String requestUri = address + "/context/" + context + "/tracesave"+trace+"/"+fileName;
+        System.out.println("KPRIME PUT [" + requestUri + "] ");
+        HttpRequest.BodyPublisher data = HttpRequest.BodyPublishers.ofString(docText);
+        HttpRequest httpRequest = HttpRequest.newBuilder()
+                .PUT(data)
+                .uri(URI.create(requestUri))
+                .setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
+                .header("Content-Type", "application/json;charset=utf-8")
+                .build();
+    }
 }

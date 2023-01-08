@@ -15,7 +15,7 @@ public class Shell {
     private static final Config config = new Config();
     private static final Properties cliResourceProperties = new Properties();
     private static final Properties cliHomeProperties = new Properties();
-    private String propertyAddCommand = "properties-add";
+    private final String propertyAddCommand = "properties-add";
 
     public static void main(String[] args) {
         Shell shell = new Shell();
@@ -69,8 +69,7 @@ public class Shell {
 
     private void askForCommandsUntilQuit(LineReader reader, CommandLineParser parser, CommandExecutor executor) {
         String line;
-        LineReader currentReader = reader;
-        while ((line = currentReader.readLine(">")) != null) {
+        while ((line = reader.readLine(getServerNameProperty()+":"+getContextProperty()+">")) != null) {
                 if (isExitCommand(line)) {
                     break;
                 }
@@ -99,7 +98,10 @@ public class Shell {
                 if (command != null) {
                     command.setMustArgs(Map.of(
                             Commandable.must_arg_context, getContextProperty(), //e.g. "kprime"
-                            Commandable.must_arg_address, getAddressProperty())); //e.g. "http://localhost:7000"
+                            Commandable.must_arg_address, getAddressProperty()
+//                            Commandable.must_arg_trace, getTrace(line),
+//                            Commandable.must_arg_file_path(getFilePath(line))
+                    )); //e.g. "http://localhost:7000"
                     Commandable commandExecuted = executor.execute(command);
                     String executeResult = commandExecuted.getResult();
                     //currentReader = readerWithOptions(currentReader,List.of("alfa","beta"));
@@ -109,9 +111,16 @@ public class Shell {
         }
     }
 
+    private void putDoc(String line) {
+    }
+
     private String getAddressProperty() {
         String serverName = cliHomeProperties.getProperty(Commandable.must_arg_server_name, "");
         return cliHomeProperties.getProperty(serverName, "");
+    }
+
+    private String getServerNameProperty() {
+        return cliHomeProperties.getProperty(Commandable.must_arg_server_name, "");
     }
 
     private String getContextProperty() {
@@ -189,7 +198,6 @@ public class Shell {
 
     private boolean isAddPropertiesCommand(String command) {
         return command.trim().startsWith(propertyAddCommand);
-
     }
 
     private boolean isRemovePropertiesCommand(String command) {
