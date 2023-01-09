@@ -1,6 +1,6 @@
 package it.informatelier.kprime.cli.http;
 
-public class MpmHttpResponse {
+public class SimpleHttpResponse {
     private ResponseHeader responseHeader;
     private String response;
     private String spellcheck;

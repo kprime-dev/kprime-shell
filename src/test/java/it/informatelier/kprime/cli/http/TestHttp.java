@@ -1,7 +1,6 @@
 package it.informatelier.kprime.cli.http;
 
 import com.google.gson.Gson;
-import it.informatelier.kprime.cli.http.MpmHttpResponse;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -26,7 +25,7 @@ public class TestHttp {
 
         Response response = client.newCall(request).execute();
         Gson gson = new Gson();
-        MpmHttpResponse mpmHttpResponse = gson.fromJson(response.body().string(), MpmHttpResponse.class);
+        SimpleHttpResponse mpmHttpResponse = gson.fromJson(response.body().string(), SimpleHttpResponse.class);
         assertThat(mpmHttpResponse.getResponseHeader().getQTime(), is(12));
     }
 }
