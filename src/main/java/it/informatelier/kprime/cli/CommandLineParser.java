@@ -35,7 +35,7 @@ class CommandLineParser {
 
     /**
      * Parse the string to create a new Command.
-     * May return null if unable to parse the command.
+     * It returns null when unable to parse the command.
      *
      * @param line
      * @return a new command
@@ -45,7 +45,6 @@ class CommandLineParser {
         Commandable commandable = commands.get(firstToken) != null ? commands.get(firstToken) : new KPPutCommand();
         commandable.setCommandLine(line);
         Map<String,String> mustArgs = askRequiredArgs(commandable.getMustArgs());
-        completeEnvironment(mustArgs);
         commandable.setEnvironment(mustArgs);
         commandable.fillWithArgs(mustArgs);
         return commandable;
@@ -60,14 +59,6 @@ class CommandLineParser {
 
     private void register(Command command) {
         this.commands.put(command.getName(),command);
-    }
-    public String getMvnBinPath() {
-        return config.get("MVN_HOME")+"/bin /";
-    }
-
-    private void completeEnvironment(Map<String, String> mustArgs) {
-        if (mustArgs==null) return;
-        mustArgs.put( "mvnBinPath", getMvnBinPath());
     }
 
     private Map<String, String> askRequiredArgs(Map<String,String> mustArgKeys) {

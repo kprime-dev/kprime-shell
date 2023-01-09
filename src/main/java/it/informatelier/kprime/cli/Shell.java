@@ -61,18 +61,13 @@ public class Shell {
     }
 
     private static void printUsage(CommandLineParser parser) {
-        System.out.println(cliResourceProperties.getProperty("mpm.name")+" version: "+ cliResourceProperties.getProperty("mpm.version"));
-        System.out.println("Mvn bin path: ["+parser.getMvnBinPath()+"]");
-        System.out.println("Home path: ["+config.get("HOME")+"]");
-        System.out.println("Usage: java -jar mpm*.jar");
-        System.out.println("  it looks for a pom.xml file in current directory.");
-        System.out.println();
-        System.out.println("  Type 'quit' to terminate the mpm program.");
+        System.out.println(cliResourceProperties.getProperty("cli.name")+" version: "+ cliResourceProperties.getProperty("cli.version"));
+        System.out.println("  Type 'quit' to terminate the program.");
         System.out.println(parser.getCommandsUsage());
     }
 
     private void start(String... args) {
-        LineReader reader = readerWithOptions(null,
+        LineReader reader = readerWithOptions(
                 List.of("help", "help topic", "help cmd", "quit", "info", "info-context", "log",
                         "properties","properties-add","properties-rem"));
         CommandLineParser parser = new CommandLineParser(config,reader);
@@ -116,20 +111,14 @@ public class Shell {
                 if (command != null) {
                     command.setMustArgs(Map.of(
                             Commandable.must_arg_context, getContextProperty(), //e.g. "kprime"
-                            Commandable.must_arg_address, getAddressProperty()
-//                            Commandable.must_arg_trace, getTrace(line),
-//                            Commandable.must_arg_file_path(getFilePath(line))
-                    )); //e.g. "http://localhost:7000"
+                            Commandable.must_arg_address, getAddressProperty()  //e.g. "http://localhost:7000"
+                    ));
                     Commandable commandExecuted = executor.execute(command);
                     String executeResult = commandExecuted.getResult();
-                    //currentReader = readerWithOptions(currentReader,List.of("alfa","beta"));
                     printCommandLineResult(commandExecuted.getCommandLine(), executeResult);
                     printCommandLineOptions(commandExecuted.getOptsArgs());
                 }
         }
-    }
-
-    private void putDoc(String line) {
     }
 
     private String getAddressProperty() {
@@ -153,8 +142,7 @@ public class Shell {
         System.out.println("["+a+"]=["+b+"]");
     }
 
-    private LineReader readerWithOptions(LineReader currentReader,List<String> optsArgs) {
-        if (optsArgs==null) return currentReader;
+    private LineReader readerWithOptions(List<String> optsArgs) {
         ArgumentCompleter completer = new ArgumentCompleter(
                 new StringsCompleter(optsArgs));
         LineReader reader = LineReaderBuilder.builder().completer(completer).build();
@@ -179,20 +167,7 @@ public class Shell {
 
     private void printCommandLineResult(String commandLine,String output) {
       System.out.println("\u001B[33m:\\"+commandLine+">\u001B[0m\"");
-      if (commandLine!=null && commandLine.startsWith("mvn"))
-        print(output,"[WARNING]","[ERROR]","SUCCESS");
-      else
-        System.out.println(output);
-    }
-
-    private void print(String output,String... filters){
-      String[] split = output.split("\n");
-      for (String line :split) {
-        for (String filter: filters) {
-          if (line.contains(filter))
-            System.out.println(":"+line);
-          }
-      }
+      System.out.println(output);
     }
 
     private String buildCommandLineFromArgs(String[] args) {
