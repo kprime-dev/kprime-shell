@@ -7,6 +7,8 @@ public interface Commandable extends Runnable {
 
     final String must_arg_server_name = "server-name";
     final String must_arg_address = "server-address";
+    final String must_arg_user_name = "user-name";
+    final String must_arg_user_pass = "user-pass";
     final String must_arg_context = "context";
     final String must_arg_trace = "trace";
     final String must_arg_file_path = "file-path";

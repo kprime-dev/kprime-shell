@@ -25,17 +25,35 @@ public class Shell {
             String cliVersion = cliResourceProperties.getProperty("cli.version");
             String cliGroupId = cliResourceProperties.getProperty("cli.group");
             String cliArtifactId = cliResourceProperties.getProperty("cli.artifact");
-            System.out.println("KPRIME CLI ["+cliGroupId+"."+cliArtifactId+"] version ["+ cliVersion +"]");
-            if (shell.getCliHome()==null) {
+            System.out.println("KPRIME CLI [" + cliGroupId + "." + cliArtifactId + "] version [" + cliVersion + "]");
+            if (shell.getCliHome() == null) {
                 System.err.println("fatal error env KPRIME_HOME not set.");
                 return;
             }
+            if (! new File(shell.getCliHome() + "cli.properties").canRead()) {
+                firstRunSequence(cliVersion, shell.getCliHome() + "cli.properties");
+            }
             cliHomeProperties.load(new FileReader(shell.getCliHome()+"cli.properties"));
-            System.out.println("KPRIME HOME:["+shell.getCliHome()+"] with "+ cliHomeProperties.size()+" properties.");
+            System.out.println("KPRIME HOME:[" + shell.getCliHome() + "] with " + cliHomeProperties.size() + " properties.");
             shell.start(args);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private static void firstRunSequence(String cliVersion, String cliPropertiesFilePath) throws IOException {
+        Properties pros = new Properties();
+        Console reader = System.console();
+        String serverName = reader.readLine(Commandable.must_arg_server_name+">");
+        pros.setProperty(Commandable.must_arg_server_name,serverName);
+        String serverAddress = reader.readLine(Commandable.must_arg_address+">");
+        pros.setProperty(serverName,serverAddress);
+        String userName = reader.readLine(Commandable.must_arg_user_name+">");
+        pros.setProperty(Commandable.must_arg_user_name,userName);
+        String userPass = reader.readLine(Commandable.must_arg_user_pass+">");
+        pros.setProperty(Commandable.must_arg_user_pass,userPass);
+        FileOutputStream fos = new FileOutputStream(cliPropertiesFilePath);
+        pros.store(fos,"Kprime CLI "+cliVersion);
     }
 
     private String getCliHome() {
