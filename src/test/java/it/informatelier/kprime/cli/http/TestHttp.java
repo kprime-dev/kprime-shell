@@ -1,4 +1,4 @@
-package it.informatelier.kprime.cli;
+package it.informatelier.kprime.cli.http;
 
 import com.google.gson.Gson;
 import it.informatelier.kprime.cli.http.MpmHttpResponse;
