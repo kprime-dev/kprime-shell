@@ -11,14 +11,17 @@ public class KPrimeProxy {
 //    String contextName = "kprime";
 
 
-    public ModelResponse ask(String address, String context, ModelRequest request) {
+    public ModelResponse ask(String address, String context, String kpUser, String kpPass, ModelRequest request) {
         String question = request.getQuestion();
         if (question.startsWith("POST ")) {
-            return new ModelResponse(askKPrime(address, context,"post", question.substring(5)).getResponse());
+            return new ModelResponse(askKPrime(address, context,kpUser, kpPass,
+                    "post", question.substring(5)).getResponse());
         } else if (question.startsWith("GET ")) {
-                return new ModelResponse(askKPrime(address, context,"get",question.substring(4)).getResponse());
+                return new ModelResponse(askKPrime(address, context,kpUser, kpPass,
+                        "get",question.substring(4)).getResponse());
         } else {
-            return new ModelResponse(askKPrime(address, context,"put",question.substring(4)).getResponse());
+            return new ModelResponse(askKPrime(address, context, kpUser, kpPass,
+                    "put",question.substring(4)).getResponse());
         }
     }
 
@@ -29,7 +32,9 @@ public class KPrimeProxy {
 
     // https://mkyong.com/java/java-11-httpclient-examples/
 
-    private KPrimeDTO askKPrime(String address, String context, String requestType, String request) {
+    private KPrimeDTO askKPrime(String address, String context,
+                                String kpUser, String kpPass,
+                                String requestType, String request) {
         //System.out.println(this.getClass().getName()+":askKPrime ["+request+"]");
         KPrimeDTO kPrimeDTO = new KPrimeDTO();
         kPrimeDTO.setRequest(request);
@@ -53,11 +58,13 @@ public class KPrimeProxy {
                         .header("Content-Type", "application/x-www-form-urlencoded")
                         .build();
             } else if (requestType.equals("put")) {
-                String requestUri = address + "/expert/" + context + "/tracecommand";
+                String requestUri = address + "/cli/" + context + "/tracecommand";
                 System.out.println("KPRIME PUT [" + requestUri + "] request:[" + request + "]");
                 httpRequest = HttpRequest.newBuilder()
                         .PUT(data)
                         .uri(URI.create(requestUri))
+                        .setHeader("kpuser",kpUser)
+                        .setHeader("kppass",kpPass)
                         .setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
                         .header("Content-Type", "application/json;charset=utf-8")
                         .build();

@@ -30,10 +30,13 @@ public class Shell {
                 System.err.println("fatal error env KPRIME_HOME not set.");
                 return;
             }
-            if (! new File(shell.getCliHome() + "cli.properties").canRead()) {
+            String cliPropertiesFilePath = shell.getCliHome() + "cli.properties";
+            if (! new File(cliPropertiesFilePath).canRead()) {
                 firstRunSequence(cliVersion, shell.getCliHome() + "cli.properties");
             }
             cliHomeProperties.load(new FileReader(shell.getCliHome()+"cli.properties"));
+            String kpUser = cliHomeProperties.getProperty(Commandable.must_arg_user_name);
+            if (kpUser==null || kpUser.isEmpty()) askUserPass(cliVersion,cliPropertiesFilePath,cliHomeProperties);
             System.out.println("KPRIME HOME:[" + shell.getCliHome() + "] with " + cliHomeProperties.size() + " properties.");
             shell.start(args);
         } catch (Exception e) {
@@ -54,6 +57,16 @@ public class Shell {
         pros.setProperty(Commandable.must_arg_user_pass,userPass);
         FileOutputStream fos = new FileOutputStream(cliPropertiesFilePath);
         pros.store(fos,"Kprime CLI "+cliVersion);
+    }
+
+    private static void askUserPass(String cliVersion, String cliPropertiesFilePath, Properties cliHomeProperties) throws IOException {
+        Console reader = System.console();
+        String userName = reader.readLine(Commandable.must_arg_user_name+">");
+        cliHomeProperties.setProperty(Commandable.must_arg_user_name,userName);
+        String userPass = reader.readLine(Commandable.must_arg_user_pass+">");
+        cliHomeProperties.setProperty(Commandable.must_arg_user_pass,userPass);
+        FileOutputStream fos = new FileOutputStream(cliPropertiesFilePath);
+        cliHomeProperties.store(fos,"Kprime CLI "+cliVersion);
     }
 
     private String getCliHome() {
@@ -111,7 +124,9 @@ public class Shell {
                 if (command != null) {
                     command.setMustArgs(Map.of(
                             Commandable.must_arg_context, getContextProperty(), //e.g. "kprime"
-                            Commandable.must_arg_address, getAddressProperty()  //e.g. "http://localhost:7000"
+                            Commandable.must_arg_address, getAddressProperty(),  //e.g. "http://localhost:7000"
+                            Commandable.must_arg_user_name, getUserNameProperty(),
+                            Commandable.must_arg_user_pass, getUserPassProperty()
                     ));
                     Commandable commandExecuted = executor.execute(command);
                     String executeResult = commandExecuted.getResult();
@@ -132,6 +147,14 @@ public class Shell {
 
     private String getContextProperty() {
         return cliHomeProperties.getProperty(Commandable.must_arg_context, "");
+    }
+
+    private String getUserNameProperty() {
+        return cliHomeProperties.getProperty(Commandable.must_arg_user_name, "");
+    }
+
+    private String getUserPassProperty() {
+        return cliHomeProperties.getProperty(Commandable.must_arg_user_pass, "");
     }
 
     private void printHomeProperties() {

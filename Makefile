@@ -18,6 +18,6 @@ docker-run:
                 kprime-cli
 
 # make docker-deploy -e "kpver=beta16"
-docker-deploy: #docker-build
+docker-deploy: docker-build
 	sudo docker tag kprime-cli nipedot/kprime-cli:$(kpver)
 	sudo docker push nipedot/kprime-cli:$(kpver)

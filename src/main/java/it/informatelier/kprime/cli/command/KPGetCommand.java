@@ -18,6 +18,8 @@ public class KPGetCommand extends CommandRun {
     public void runBody() {
         String address = getMustArgs().get(must_arg_address);
         String context = getMustArgs().get(must_arg_context);
+        String kpUser = getMustArgs().get(must_arg_user_name);
+        String kpPass = getMustArgs().get(must_arg_user_pass);
         if (address==null || address.isEmpty()) {
             setResult("No required "+must_arg_address+" in GET properties.");
             return;
@@ -26,7 +28,7 @@ public class KPGetCommand extends CommandRun {
             setResult("No required "+must_arg_context+" in GET properties.");
             return;
         }
-        setResult(new KPrimeProxy().ask(address,context,
+        setResult(new KPrimeProxy().ask(address,context,kpUser,kpPass,
                 new ModelRequest("GET /project/forcetree/json")).getAnswer());
 
     }

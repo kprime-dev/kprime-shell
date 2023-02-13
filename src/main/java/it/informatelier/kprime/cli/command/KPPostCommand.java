@@ -18,6 +18,8 @@ public class KPPostCommand extends CommandRun {
     public void runBody() {
         String address = getMustArgs().get(must_arg_address);
         String context = getMustArgs().get(must_arg_context);
+        String kpUser = getMustArgs().get(must_arg_user_name);
+        String kpPass = getMustArgs().get(must_arg_user_pass);
         if (address==null || address.isEmpty()) {
             setResult("No required "+must_arg_address+" in POST properties.");
             return;
@@ -26,7 +28,7 @@ public class KPPostCommand extends CommandRun {
             setResult("No required "+must_arg_context+" in POST properties.");
             return;
         }
-        setResult(new KPrimeProxy().ask(address,context,
+        setResult(new KPrimeProxy().ask(address,context,kpUser,kpPass,
                 new ModelRequest("POST help")).getAnswer());
 
     }
