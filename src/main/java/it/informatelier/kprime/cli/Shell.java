@@ -3,6 +3,7 @@ package it.informatelier.kprime.cli;
 import it.informatelier.kprime.cli.command.Commandable;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.impl.completer.AggregateCompleter;
 import org.jline.reader.impl.completer.ArgumentCompleter;
 import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.widget.AutosuggestionWidgets;
@@ -80,11 +81,23 @@ public class Shell {
     }
 
     private void start(String... args) {
-        LineReader reader = readerWithOptions(
-                List.of("help", "help topic", "help cmd", "quit", "info", "info-context", "log",
-                        "properties","properties-add","properties-rem"));
-        CommandLineParser parser = new CommandLineParser(config,reader);
+        CommandLineParser parser = new CommandLineParser(config);
         CommandExecutor executor = new CommandExecutor(config);
+
+        LineReader reader = LineReaderBuilder
+                .builder()
+                .completer(new AggregateCompleter(
+                        new ArgumentCompleter(new StringsCompleter(List.of(
+                                "help", "help topic", "help cmd", "quit", "info", "info-context",
+                                "log", "properties", "properties-add", "properties-rem"))
+                        ),
+                        new RemoteCompleter(parser, executor, getContextProperty(), getAddressProperty())
+                ))
+                .build();
+        AutosuggestionWidgets autosuggestionWidgets = new AutosuggestionWidgets(reader);
+        autosuggestionWidgets.enable();
+
+
         if (thereAreArguments(args)) executeSingleCommand(parser, executor, args);
         else askForCommandsUntilQuit(reader, parser, executor);
     }
@@ -165,14 +178,6 @@ public class Shell {
         System.out.println("["+a+"]=["+b+"]");
     }
 
-    private LineReader readerWithOptions(List<String> optsArgs) {
-        ArgumentCompleter completer = new ArgumentCompleter(
-                new StringsCompleter(optsArgs));
-        LineReader reader = LineReaderBuilder.builder().completer(completer).build();
-        AutosuggestionWidgets autosuggestionWidgets = new AutosuggestionWidgets(reader);
-        autosuggestionWidgets.enable();
-        return reader;
-    }
 
     private void executeSingleCommand(CommandLineParser parser, CommandExecutor executor, String[] args) {
         System.out.println("Single command execution.");

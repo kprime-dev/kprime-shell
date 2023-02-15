@@ -2,13 +2,9 @@ package it.informatelier.kprime.cli;
 
 import it.informatelier.kprime.cli.command.Commandable;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Execute on host operation system a Command.
@@ -23,7 +19,6 @@ public class CommandExecutor {
 
     Commandable execute(Commandable commandable) {
         if (commandable==null) return null;
-        String commandLine = commandable.getCommandLine();
         try {
             commandable.run();
             String commandResult = commandable.getResult();
