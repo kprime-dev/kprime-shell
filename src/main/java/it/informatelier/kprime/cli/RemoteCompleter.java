@@ -14,14 +14,12 @@ public class RemoteCompleter implements Completer {
 
     private final CommandLineParser parser;
     private final CommandExecutor executor;
-    private final String context;
-    private final String address;
+    private final ServerRequiredParams serverRequiredParams;
 
-    public RemoteCompleter(CommandLineParser parser, CommandExecutor executor, String context, String address) {
+    public RemoteCompleter(CommandLineParser parser, CommandExecutor executor, ServerRequiredParams serverRequiredParams) {
         this.parser = parser;
         this.executor = executor;
-        this.context = context;
-        this.address = address;
+        this.serverRequiredParams = serverRequiredParams;
     }
 
     @Override
@@ -30,8 +28,10 @@ public class RemoteCompleter implements Completer {
         Commandable commandable = parser.parse(line);
 
         commandable.setMustArgs(Map.of(
-                Commandable.must_arg_context, context,
-                Commandable.must_arg_address, address
+                Commandable.must_arg_context, serverRequiredParams.getContext(),
+                Commandable.must_arg_address, serverRequiredParams.getAddress(),
+                Commandable.must_arg_user_name, serverRequiredParams.getUserName(),
+                Commandable.must_arg_user_pass, serverRequiredParams.getUserPass()
         ));
 
         executor.execute(commandable);

@@ -89,7 +89,7 @@ public class Shell {
                                 "help", "help topic", "help cmd", "quit", "info", "info-context",
                                 "log", "properties", "properties-add", "properties-rem"))
                         ),
-                        new RemoteCompleter(parser, executor, getContextProperty(), getAddressProperty())
+                        new RemoteCompleter(parser, executor, ServerRequiredParams.fromProperties(cliHomeProperties))
                 ))
                 .build();
         AutosuggestionWidgets autosuggestionWidgets = new AutosuggestionWidgets(reader);
@@ -106,7 +106,8 @@ public class Shell {
 
     private void askForCommandsUntilQuit(LineReader reader, CommandLineParser parser, CommandExecutor executor) {
         String line;
-        while ((line = reader.readLine(getServerNameProperty()+":"+getContextProperty()+">")) != null) {
+        ServerRequiredParams serverRequiredParams= ServerRequiredParams.fromProperties(cliHomeProperties);
+        while ((line = reader.readLine(serverRequiredParams.getServerName()+":"+serverRequiredParams.getContext()+">")) != null) {
                 if (isExitCommand(line)) {
                     break;
                 }
@@ -134,10 +135,10 @@ public class Shell {
                 Commandable command = parser.parse(line);
                 if (command != null) {
                     command.setMustArgs(Map.of(
-                            Commandable.must_arg_context, getContextProperty(), //e.g. "kprime"
-                            Commandable.must_arg_address, getAddressProperty(),  //e.g. "http://localhost:7000"
-                            Commandable.must_arg_user_name, getUserNameProperty(),
-                            Commandable.must_arg_user_pass, getUserPassProperty()
+                            Commandable.must_arg_context, serverRequiredParams.getContext(), //e.g. "kprime"
+                            Commandable.must_arg_address, serverRequiredParams.getAddress(),  //e.g. "http://localhost:7000"
+                            Commandable.must_arg_user_name, serverRequiredParams.getUserName(),
+                            Commandable.must_arg_user_pass, serverRequiredParams.getUserPass()
                     ));
                     Commandable commandExecuted = executor.execute(command);
                     String executeResult = commandExecuted.getResult();
@@ -147,26 +148,6 @@ public class Shell {
         }
     }
 
-    private String getAddressProperty() {
-        String serverName = cliHomeProperties.getProperty(Commandable.must_arg_server_name, "");
-        return cliHomeProperties.getProperty(serverName, "");
-    }
-
-    private String getServerNameProperty() {
-        return cliHomeProperties.getProperty(Commandable.must_arg_server_name, "");
-    }
-
-    private String getContextProperty() {
-        return cliHomeProperties.getProperty(Commandable.must_arg_context, "");
-    }
-
-    private String getUserNameProperty() {
-        return cliHomeProperties.getProperty(Commandable.must_arg_user_name, "");
-    }
-
-    private String getUserPassProperty() {
-        return cliHomeProperties.getProperty(Commandable.must_arg_user_pass, "");
-    }
 
     private void printHomeProperties() {
         cliHomeProperties.forEach(Shell::printPair);
