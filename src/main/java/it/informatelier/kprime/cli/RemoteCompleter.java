@@ -36,7 +36,6 @@ public class RemoteCompleter implements Completer {
 
         executor.execute(commandable);
         List<String> options = commandable.getOptsArgs();
-        System.out.println(options);
         if (options != null) {
             list.addAll(options
                     .stream()

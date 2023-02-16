@@ -50,7 +50,6 @@ public class KPrimeProxy {
             HttpRequest httpRequest;
             if (requestType.equals("post")) {
                 String requestUri = address + "/parse";
-                System.out.println("KPRIME POST [" + requestUri + "] request:[" + request + "]");
                 httpRequest = HttpRequest.newBuilder()
                         .POST(data)
                         .uri(URI.create(requestUri))
@@ -59,7 +58,6 @@ public class KPrimeProxy {
                         .build();
             } else if (requestType.equals("put")) {
                 String requestUri = address + "/cli/" + context + "/tracecommand";
-                System.out.println("KPRIME PUT [" + requestUri + "] request:[" + request + "]");
                 httpRequest = HttpRequest.newBuilder()
                         .PUT(data)
                         .uri(URI.create(requestUri))
@@ -70,16 +68,13 @@ public class KPrimeProxy {
                         .build();
             } else {
                 String requestUri = address + request;
-                System.out.println("KPRIME GET [" + requestUri + "] ");
                 httpRequest = HttpRequest.newBuilder()
                         .GET()
                         .uri(URI.create(requestUri))
                         .setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
                         .build();
             }
-            //System.out.println(this.getClass().getName()+"Sending "+requestType);
             HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            //System.out.println(httpResponse.body());
             kPrimeDTO.setResponse(httpResponse.body().replaceAll("\"","").replaceAll("\\\\n", "\n"));
         } catch (Exception e) {
             //e.printStackTrace();
@@ -117,7 +112,6 @@ public class KPrimeProxy {
         // put text
         // this.$http.put('/context/'+this.currentProject+'/tracesave/'+traceDir+underDir+"/"+fileName,traceFileContent)
         String requestUri = address + "/context/" + context + "/tracesave"+trace+"/"+fileName;
-        System.out.println("KPRIME PUT [" + requestUri + "] ");
         HttpRequest.BodyPublisher data = HttpRequest.BodyPublishers.ofString(docText);
         HttpRequest httpRequest = HttpRequest.newBuilder()
                 .PUT(data)

@@ -29,7 +29,6 @@ public class KPPutCommand extends CommandRun {
             return;
         }
         String command = getFirstToken()+ " "+ String.join(" ",getArgTokens());
-        System.out.println("KPPutCommand user["+kpUser+"] ["+command+"]");
         setResult(new KPrimeProxy().ask(address,context,kpUser,kpPass,
                 new ModelRequest("PUT >"+command)).getAnswer());
 

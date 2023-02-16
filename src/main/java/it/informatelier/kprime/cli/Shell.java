@@ -26,7 +26,6 @@ public class Shell {
             String cliVersion = cliResourceProperties.getProperty("cli.version");
             String cliGroupId = cliResourceProperties.getProperty("cli.group");
             String cliArtifactId = cliResourceProperties.getProperty("cli.artifact");
-            System.out.println("KPRIME CLI [" + cliGroupId + "." + cliArtifactId + "] version [" + cliVersion + "]");
             if (shell.getCliHome() == null) {
                 System.err.println("fatal error env KPRIME_HOME not set.");
                 return;
@@ -38,7 +37,6 @@ public class Shell {
             cliHomeProperties.load(new FileReader(shell.getCliHome()+"cli.properties"));
             String kpUser = cliHomeProperties.getProperty(Commandable.must_arg_user_name);
             if (kpUser==null || kpUser.isEmpty()) askUserPass(cliVersion,cliPropertiesFilePath,cliHomeProperties);
-            System.out.println("KPRIME HOME:[" + shell.getCliHome() + "] with " + cliHomeProperties.size() + " properties.");
             shell.start(args);
         } catch (Exception e) {
             e.printStackTrace();
