@@ -25,7 +25,7 @@ public class RemoteCompleter implements Completer {
     @Override
     public void complete(LineReader lineReader, ParsedLine parsedLine, List<Candidate> list) {
         String line = parsedLine.line();
-        Commandable commandable = parser.parse(line);
+        Commandable commandable = parser.parse("line");
 
         commandable.setMustArgs(Map.of(
                 Commandable.must_arg_context, serverRequiredParams.getContext(),
@@ -34,7 +34,7 @@ public class RemoteCompleter implements Completer {
                 Commandable.must_arg_user_pass, serverRequiredParams.getUserPass()
         ));
 
-        executor.execute(commandable);
+        Commandable executed = executor.execute(commandable);
         List<String> options = commandable.getOptsArgs();
         if (options != null) {
             list.addAll(options
@@ -43,5 +43,7 @@ public class RemoteCompleter implements Completer {
                     .collect(Collectors.toList())
             );
         }
+
+        //System.out.println(list.size());
     }
 }

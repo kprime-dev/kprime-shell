@@ -109,4 +109,16 @@ public abstract class Command implements Commandable {
         this.environment = environment;
     }
 
+    @Override
+    public String toString() {
+        return "Command{" +
+                "hasRun=" + hasRun +
+                ", result='" + result + '\'' +
+                ", commandLine='" + commandLine + '\'' +
+                ", tokens=" + tokens +
+                ", mustArgs=" + mustArgs +
+                ", optsArgs=" + optsArgs +
+                ", environment=" + environment +
+                '}';
+    }
 }

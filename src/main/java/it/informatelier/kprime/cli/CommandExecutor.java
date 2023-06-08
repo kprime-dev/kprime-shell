@@ -37,7 +37,7 @@ public class CommandExecutor {
 
     private List<String> extractOptions(String result) {
         int msgStart = result.indexOf("options:[")+9;
-        int msgEnd = result.indexOf("],ok:");
+        int msgEnd = result.indexOf("]",msgStart);
         List<String> options = null;
         if (msgStart>7 && msgEnd>msgStart) options = Arrays.asList(result.substring(msgStart,msgEnd).split(","));
         else options = new ArrayList<>();
