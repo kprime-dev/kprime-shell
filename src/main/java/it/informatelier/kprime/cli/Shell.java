@@ -10,13 +10,46 @@ import org.jline.widget.AutosuggestionWidgets;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class Shell {
     private static final Config config = new Config();
     private static final Properties cliResourceProperties = new Properties();
     private static final Properties cliHomeProperties = new Properties();
-    private final String propertyAddCommand = "properties-add";
+    private enum commandLabels {
+        PROPERTIES("properties"),
+        PROPERTY_SET("property-set"),
+        PROPERTY_REM("property-rem"),
+        QUIT("quit"),
+        LOG("log"),
+        HELP("help"),
+        HELP_CMD("help cmd"),
+        HELP_TOPIC("help topic"),
+        INFO_CONTEXT("info-context"),
+        INFO("info");
+
+        private final String label;
+
+        commandLabels (String label) {
+            this.label = label;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        static public List<String> getLabels() {
+            return Arrays.stream(commandLabels.values())
+                    .map(commandLabels::getLabel).collect(Collectors.toList());
+
+        }
+
+        @Override
+        public String toString() {
+            return getLabel();
+        }
+    };
 
     public static void main(String[] args) {
         Shell shell = new Shell();
@@ -85,13 +118,14 @@ public class Shell {
         LineReader reader = LineReaderBuilder
                 .builder()
                 .completer(new AggregateCompleter(
-                        new ArgumentCompleter(new StringsCompleter(List.of(
-                                "help", "help topic", "help cmd", "quit", "info", "info-context",
-                                "log", "properties", "properties-add", "properties-rem"))
-                        ),
+                        new ArgumentCompleter(new StringsCompleter(
+                                    commandLabels.getLabels()
+//                                List.of(
+//                                "help", "help topic", "help cmd", "quit", "info", "info-context",
+//                                "log", "properties", "properties-set", "properties-rem"))
+                        )),
                         new RemoteCompleter(parser, executor, ServerRequiredParams.fromProperties(cliHomeProperties))
-                ))
-                .build();
+                )).build();
         AutosuggestionWidgets autosuggestionWidgets = new AutosuggestionWidgets(reader);
         autosuggestionWidgets.enable();
 
@@ -107,47 +141,48 @@ public class Shell {
     private void askForCommandsUntilQuit(LineReader reader, CommandLineParser parser, CommandExecutor executor) {
         String line;
         ServerRequiredParams serverRequiredParams= ServerRequiredParams.fromProperties(cliHomeProperties);
-        while ((line = reader.readLine(serverRequiredParams.getServerName()+":"+serverRequiredParams.getContext()+">")) != null) {
-                if (isExitCommand(line)) {
-                    break;
-                }
-                if (isPropertiesCommand(line)) {
-                    printHomeProperties();
-                    continue;
-                }
-                if (isAddPropertiesCommand(line)) {
-                    String lineWithoutCommandPrefix = line.substring(propertyAddCommand.length()+1);
-                    String[] tokens = lineWithoutCommandPrefix.split("=");
-                    cliHomeProperties.setProperty(tokens[0].trim(),tokens[1].trim());
-                    saveHomeProperty();
-                    continue;
-                }
-                if (isRemovePropertiesCommand(line)) {
-                    String[] tokens = line.split(" ");
-                    cliHomeProperties.remove(tokens[1].trim());
-                    saveHomeProperty();
-                    continue;
-                }
-                if (isHelpCommand(line)) {
-                    printUsage(parser);
-                    continue;
-                }
-                Commandable command = parser.parse(line);
-                if (command != null) {
-                    command.setMustArgs(Map.of(
-                            Commandable.must_arg_context, serverRequiredParams.getContext(), //e.g. "kprime"
-                            Commandable.must_arg_address, serverRequiredParams.getAddress(),  //e.g. "http://localhost:7000"
-                            Commandable.must_arg_user_name, serverRequiredParams.getUserName(),
-                            Commandable.must_arg_user_pass, serverRequiredParams.getUserPass()
-                    ));
-                    Commandable commandExecuted = executor.execute(command);
-                    String executeResult = commandExecuted.getResult();
-                    printCommandLineResult(commandExecuted.getCommandLine(), executeResult);
-                    printCommandLineOptions(commandExecuted.getOptsArgs());
-                }
+        while ((line = reader.readLine(getPrompt(serverRequiredParams))) != null) {
+                if (isExitCommand(line)) break;
+                else if (isPropertiesCommand(line)) printHomeProperties();
+                else if (isSetPropertyCommand(line)) setPropertiesAction(line);
+                else if (isRemovePropertiesCommand(line)) remPropertiesAction(line);
+                else if (isHelpCommand(line)) printUsage(parser);
+                else executeCommandAction(parser, executor, line, serverRequiredParams);
         }
     }
 
+    private static String getPrompt(ServerRequiredParams serverRequiredParams) {
+        return serverRequiredParams.getServerName() + ":" + serverRequiredParams.getContext() + ">";
+    }
+
+    private void executeCommandAction(CommandLineParser parser, CommandExecutor executor, String line, ServerRequiredParams serverRequiredParams) {
+        Commandable command = parser.parse(line);
+        if (command != null) {
+            command.setMustArgs(Map.of(
+                    Commandable.must_arg_context, serverRequiredParams.getContext(), //e.g. "kprime"
+                    Commandable.must_arg_address, serverRequiredParams.getAddress(),  //e.g. "http://localhost:7000"
+                    Commandable.must_arg_user_name, serverRequiredParams.getUserName(),
+                    Commandable.must_arg_user_pass, serverRequiredParams.getUserPass()
+            ));
+            Commandable commandExecuted = executor.execute(command);
+            String executeResult = commandExecuted.getResult();
+            printCommandLineResult(commandExecuted.getCommandLine(), executeResult);
+            printCommandLineOptions(commandExecuted.getOptsArgs());
+        }
+    }
+
+    private void remPropertiesAction(String line) {
+        String[] tokens = line.split(" ");
+        cliHomeProperties.remove(tokens[1].trim());
+        saveHomeProperty();
+    }
+
+    private void setPropertiesAction(String line) {
+        String lineWithoutCommandPrefix = line.substring(commandLabels.PROPERTY_SET.label.length()+1);
+        String[] tokens = lineWithoutCommandPrefix.split("=");
+        cliHomeProperties.setProperty(tokens[0].trim(),tokens[1].trim());
+        saveHomeProperty();
+    }
 
     private void printHomeProperties() {
         cliHomeProperties.forEach(Shell::printPair);
@@ -156,7 +191,6 @@ public class Shell {
     private static void printPair(Object a, Object b) {
         System.out.println("["+a+"]=["+b+"]");
     }
-
 
     private void executeSingleCommand(CommandLineParser parser, CommandExecutor executor, String[] args) {
         System.out.println("Single command execution.");
@@ -185,23 +219,23 @@ public class Shell {
     }
 
     private boolean isExitCommand(String command) {
-        return command.trim().equalsIgnoreCase("quit");
+        return command.trim().equalsIgnoreCase(commandLabels.QUIT.label);
     }
 
     private boolean isHelpCommand(String command) {
-        return "help".equalsIgnoreCase(command.trim()) || "".equals(command.trim()) ;
+        return commandLabels.HELP_CMD.label.equalsIgnoreCase(command.trim()) || "".equals(command.trim()) ;
     }
 
     private boolean isPropertiesCommand(String command) {
-        return "properties".equalsIgnoreCase(command.trim());
+        return commandLabels.PROPERTIES.label.equalsIgnoreCase(command.trim());
     }
 
-    private boolean isAddPropertiesCommand(String command) {
-        return command.trim().startsWith(propertyAddCommand);
+    private boolean isSetPropertyCommand(String command) {
+        return command.trim().startsWith(commandLabels.PROPERTY_SET.getLabel());
     }
 
     private boolean isRemovePropertiesCommand(String command) {
-        return command.trim().startsWith("properties-rem");
+        return command.trim().startsWith(commandLabels.PROPERTY_REM.getLabel());
     }
 
     private void saveHomeProperty() {
