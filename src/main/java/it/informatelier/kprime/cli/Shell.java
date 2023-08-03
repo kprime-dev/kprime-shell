@@ -149,8 +149,8 @@ public class Shell {
         while ((line = reader.readLine(getPrompt(serverRequiredParams))) != null) {
                 if (isExitCommand(line)) break;
                 else if (isPropertiesCommand(line)) printHomeProperties();
-                else if (isSetPropertyCommand(line)) setPropertiesAction(line);
-                else if (isRemovePropertiesCommand(line)) remPropertiesAction(line);
+                else if (isSetPropertyCommand(line)) setPropertiesAction(line,serverRequiredParams);
+                else if (isRemovePropertiesCommand(line)) remPropertiesAction(line,serverRequiredParams);
                 else if (isHelpCommand(line)) printUsage(parser);
                 else if (isInfoCliCommand(line)) printInfoCli(cliResourceProperties);
                 else executeCommandAction(parser, executor, line, serverRequiredParams);
@@ -161,7 +161,11 @@ public class Shell {
         return serverRequiredParams.getServerName() + ":" + serverRequiredParams.getContext() + ">";
     }
 
-    private void executeSingleCommand(CommandLineParser parser, CommandExecutor executor, String[] args,ServerRequiredParams serverRequiredParams) {
+    private void executeSingleCommand(
+            CommandLineParser parser,
+            CommandExecutor executor,
+            String[] args,
+            ServerRequiredParams serverRequiredParams) {
         System.out.println("Single command execution.");
         String line = buildCommandLineFromArgs(args);
         Commandable command = parser.parse(line,serverRequiredParams);
@@ -173,7 +177,11 @@ public class Shell {
         }
     }
 
-    private void executeCommandAction(CommandLineParser parser, CommandExecutor executor, String line, ServerRequiredParams serverRequiredParams) {
+    private void executeCommandAction(
+            CommandLineParser parser,
+            CommandExecutor executor,
+            String line,
+            ServerRequiredParams serverRequiredParams) {
         Commandable command = parser.parse(line,serverRequiredParams);
         if (command != null) {
             Commandable commandExecuted = executor.execute(command);
@@ -183,17 +191,21 @@ public class Shell {
         }
     }
 
-    private void remPropertiesAction(String line) {
+    private void remPropertiesAction(String line, ServerRequiredParams serverRequiredParams) {
         String[] tokens = line.split(" ");
         cliHomeProperties.remove(tokens[1].trim());
         saveHomeProperty();
     }
 
-    private void setPropertiesAction(String line) {
+    private void setPropertiesAction(String line, ServerRequiredParams serverRequiredParams) {
         String lineWithoutCommandPrefix = line.substring(commandLabels.PROPERTY_SET.label.length()+1);
         String[] tokens = lineWithoutCommandPrefix.split("=");
-        cliHomeProperties.setProperty(tokens[0].trim(),tokens[1].trim());
+        String key = tokens[0].trim();
+        String value = tokens[1].trim();
+        cliHomeProperties.setProperty(key, value);
         saveHomeProperty();
+        if (key.equals(Commandable.must_arg_context)) serverRequiredParams.setContext(value);
+        if (key.equals(Commandable.must_arg_server_name)) serverRequiredParams.setServerName(value);
     }
 
     private void printInfoCli(Properties cliResourceProperties) {

@@ -47,4 +47,9 @@ public class ServerRequiredParams {
     public String getUserPass() {
         return userPass;
     }
+
+    public void setContext(String context) { this.context = context; }
+
+    public void setServerName(String serverName) {this.serverName = serverName; }
+
 }
