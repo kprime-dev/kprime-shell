@@ -52,6 +52,7 @@ class CommandLineParser {
         } else {
             commandToken = firstToken;
             context = serverRequiredParams.getContext();
+            if (context.isEmpty()) context="-";
         }
         //System.out.println("Context ["+context+"] line ["+line+"]");
         Commandable commandable = commands.get(commandToken) != null ? commands.get(commandToken) : new KPPutCommand();

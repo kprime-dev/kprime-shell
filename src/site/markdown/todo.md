@@ -4,8 +4,6 @@
 
 ## Usability Issues
 
-* manage server contexts without requiring a context.
-* print server info such as CLI/kotlin version.
 * add command 'use <server.name>' to get a comfortable server switch.
 
 ## Technical Issues

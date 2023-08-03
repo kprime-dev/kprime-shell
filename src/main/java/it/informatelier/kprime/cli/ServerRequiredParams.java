@@ -30,9 +30,7 @@ public class ServerRequiredParams {
         this.userPass = userPass;
     }
 
-    public String getContext() {
-        return context;
-    }
+    public String getContext() { return context; }
 
     public String getServerName() {
         return serverName;

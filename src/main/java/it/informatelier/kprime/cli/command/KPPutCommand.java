@@ -24,10 +24,10 @@ public class KPPutCommand extends CommandRun {
             setResult("No required "+must_arg_address+" in PUT properties.");
             return;
         }
-        if (context==null || context.isEmpty()) {
-            setResult("No required "+must_arg_context+" in PUT properties.");
-            return;
-        }
+//        if (context==null || context.isEmpty()) {
+//            setResult("No required "+must_arg_context+" in PUT properties.");
+//            return;
+//        }
         String command = getFirstToken()+ " "+ String.join(" ",getArgTokens());
         setResult(new KPrimeProxy().ask(address,context,kpUser,kpPass,
                 new ModelRequest("PUT >"+command)).getAnswer());

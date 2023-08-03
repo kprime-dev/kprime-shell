@@ -30,10 +30,10 @@ public class KPDocPutCommand extends CommandRun {
             setResult("No required "+must_arg_address+" in PUT properties.");
             return;
         }
-        if (context==null || context.isEmpty()) {
-            setResult("No required "+must_arg_context+" in PUT properties.");
-            return;
-        }
+//        if (context==null || context.isEmpty()) {
+//            setResult("No required "+must_arg_context+" in PUT properties.");
+//            return;
+//        }
         if (trace==null || trace.isEmpty()) {
             setResult("No required "+must_arg_trace+" in PUT properties.");
             return;

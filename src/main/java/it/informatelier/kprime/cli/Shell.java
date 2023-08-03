@@ -23,10 +23,15 @@ public class Shell {
         PROPERTY_REM("property-rem"),
         QUIT("quit"),
         LOG("log"),
+        CONTEXTS("contexts"),
+        ADD_CONTEXTS("add-context"),
+        REM_CONTEXTS("rem-context"),
+        CONTEXT("context"),
         HELP("help"),
         HELP_CMD("help cmd"),
         HELP_TOPIC("help topic"),
         INFO_CONTEXT("info-context"),
+        INFO_CLI("info-cli"),
         INFO("info");
 
         private final String label;
@@ -70,7 +75,7 @@ public class Shell {
             cliHomeProperties.load(new FileReader(shell.getCliHome()+"cli.properties"));
             String kpUser = cliHomeProperties.getProperty(Commandable.must_arg_user_name);
             if (kpUser==null || kpUser.isEmpty()) askUserPass(cliVersion,cliPropertiesFilePath,cliHomeProperties);
-            shell.start(args);
+            shell.start(cliResourceProperties,args);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -111,7 +116,7 @@ public class Shell {
         System.out.println(parser.getCommandsUsage());
     }
 
-    private void start(String... args) {
+    private void start(Properties cliResourceProperties, String... args) {
         CommandLineParser parser = new CommandLineParser(config);
         CommandExecutor executor = new CommandExecutor(config);
 
@@ -126,17 +131,20 @@ public class Shell {
         AutosuggestionWidgets autosuggestionWidgets = new AutosuggestionWidgets(reader);
         autosuggestionWidgets.enable();
 
-
         ServerRequiredParams serverRequiredParams = ServerRequiredParams.fromProperties(cliHomeProperties);
         if (thereAreArguments(args)) executeSingleCommand(parser, executor, args, serverRequiredParams);
-        else askForCommandsUntilQuit(reader, parser, executor, serverRequiredParams);
+        else askForCommandsUntilQuit(reader, parser, executor, serverRequiredParams,cliResourceProperties);
     }
 
     private boolean thereAreArguments(String[] args) {
         return args!=null && args.length>0;
     }
 
-    private void askForCommandsUntilQuit(LineReader reader, CommandLineParser parser, CommandExecutor executor, ServerRequiredParams serverRequiredParams) {
+    private void askForCommandsUntilQuit(
+            LineReader reader,
+            CommandLineParser parser,
+            CommandExecutor executor,
+            ServerRequiredParams serverRequiredParams, Properties cliResourceProperties) {
         String line;
         while ((line = reader.readLine(getPrompt(serverRequiredParams))) != null) {
                 if (isExitCommand(line)) break;
@@ -144,6 +152,7 @@ public class Shell {
                 else if (isSetPropertyCommand(line)) setPropertiesAction(line);
                 else if (isRemovePropertiesCommand(line)) remPropertiesAction(line);
                 else if (isHelpCommand(line)) printUsage(parser);
+                else if (isInfoCliCommand(line)) printInfoCli(cliResourceProperties);
                 else executeCommandAction(parser, executor, line, serverRequiredParams);
         }
     }
@@ -187,6 +196,17 @@ public class Shell {
         saveHomeProperty();
     }
 
+    private void printInfoCli(Properties cliResourceProperties) {
+        for(Object key : cliResourceProperties.keySet()) {
+            System.out.println(key+"="+cliResourceProperties.get(key));
+        }
+        System.out.println("ENVIRONMENT:");
+        Map<String, String> clienv = System.getenv();
+        for(String key : clienv.keySet()) {
+            System.out.println(key+"="+clienv.get(key));
+        }
+    }
+
     private void printHomeProperties() {
         cliHomeProperties.forEach(Shell::printPair);
     }
@@ -217,6 +237,10 @@ public class Shell {
 
     private boolean isHelpCommand(String command) {
         return commandLabels.HELP_CMD.label.equalsIgnoreCase(command.trim()) || "".equals(command.trim()) ;
+    }
+
+    private boolean isInfoCliCommand(String command) {
+        return commandLabels.INFO_CLI.label.equalsIgnoreCase(command.trim()) || "".equals(command.trim()) ;
     }
 
     private boolean isPropertiesCommand(String command) {
