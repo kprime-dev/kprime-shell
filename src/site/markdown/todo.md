@@ -1,15 +1,14 @@
 # To Do
 
-### version 1.0.0
+## version 1.0.0
 
-+ user server.name to choose current server.address
-+ set user credentials.
-+ list server contexts.
-+ set context.
-+ print server info such as version.
+## Usability Issues
 
-## Tecnical Issues
+* set context on first run.
+* manage server contexts without requiring a context.
+* print server info such as CLI/kotlin version.
+* add command use <server.nam> to get a comfortable server switch.
 
-- get commands for autocomplete from server.
-    - currentReader = readerWithOptions(currentReader,List.of("alfa","beta"));
-    - is not functioning at runtime. 
+## Technical Issues
+
+- new properties are used only on CLI restart.
