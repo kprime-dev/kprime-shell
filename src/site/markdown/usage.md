@@ -136,4 +136,15 @@ and a usage with required,optional parameters
 
     goal : Get one goal.
     GOAL_ID : Goal ID default:null required:true
-    
+
+## Server switch
+
+If you want to connect to another server you could:
+
+    >property-set <server.label>=<server-address>
+    >property-set server-name=<server-label>
+
+Example:
+
+    >property-set server-production=https://production.com:7777/
+    >property-set server-name=server-production
