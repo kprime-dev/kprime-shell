@@ -25,7 +25,7 @@ public class RemoteCompleter implements Completer {
     @Override
     public void complete(LineReader lineReader, ParsedLine parsedLine, List<Candidate> list) {
         String line = parsedLine.line();
-        Commandable commandable = parser.parse("line");
+        Commandable commandable = parser.parse("line", serverRequiredParams);
 
         commandable.setMustArgs(Map.of(
                 Commandable.must_arg_context, serverRequiredParams.getContext(),

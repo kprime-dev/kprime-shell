@@ -37,15 +37,31 @@ class CommandLineParser {
      * It returns null when unable to parse the command.
      *
      * @param line
+     * @param serverRequiredParams
      * @return a new command
      */
-    Commandable parse(String line) {
-        String firstToken = line.split(" ")[0];
-        Commandable commandable = commands.get(firstToken) != null ? commands.get(firstToken) : new KPPutCommand();
+    Commandable parse(String line, ServerRequiredParams serverRequiredParams) {
+        String[] tokens = line.split(" ");
+        String firstToken = tokens[0];
+        String commandToken = "";
+        String context = "";
+        if (firstToken.startsWith("-context=")) {
+            commandToken = tokens[1];
+            context = firstToken.substring(9);
+            line = line.substring(line.indexOf(firstToken)+firstToken.length());
+        } else {
+            commandToken = firstToken;
+            context = serverRequiredParams.getContext();
+        }
+        //System.out.println("Context ["+context+"] line ["+line+"]");
+        Commandable commandable = commands.get(commandToken) != null ? commands.get(commandToken) : new KPPutCommand();
         commandable.setCommandLine(line);
-        //Map<String,String> mustArgs = askRequiredArgs(commandable.getMustArgs());
-        //commandable.setEnvironment(mustArgs);
-        //commandable.fillWithArgs(mustArgs);
+        commandable.setMustArgs(Map.of(
+                Commandable.must_arg_context, context, //e.g. "kprime"
+                Commandable.must_arg_address, serverRequiredParams.getAddress(),  //e.g. "http://localhost:7000"
+                Commandable.must_arg_user_name, serverRequiredParams.getUserName(),
+                Commandable.must_arg_user_pass, serverRequiredParams.getUserPass()
+        ));
         return commandable;
     }
 

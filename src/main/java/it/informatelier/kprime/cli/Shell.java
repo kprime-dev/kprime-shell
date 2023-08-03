@@ -120,9 +120,6 @@ public class Shell {
                 .completer(new AggregateCompleter(
                         new ArgumentCompleter(new StringsCompleter(
                                     commandLabels.getLabels()
-//                                List.of(
-//                                "help", "help topic", "help cmd", "quit", "info", "info-context",
-//                                "log", "properties", "properties-set", "properties-rem"))
                         )),
                         new RemoteCompleter(parser, executor, ServerRequiredParams.fromProperties(cliHomeProperties))
                 )).build();
@@ -130,17 +127,17 @@ public class Shell {
         autosuggestionWidgets.enable();
 
 
-        if (thereAreArguments(args)) executeSingleCommand(parser, executor, args);
-        else askForCommandsUntilQuit(reader, parser, executor);
+        ServerRequiredParams serverRequiredParams = ServerRequiredParams.fromProperties(cliHomeProperties);
+        if (thereAreArguments(args)) executeSingleCommand(parser, executor, args, serverRequiredParams);
+        else askForCommandsUntilQuit(reader, parser, executor, serverRequiredParams);
     }
 
     private boolean thereAreArguments(String[] args) {
         return args!=null && args.length>0;
     }
 
-    private void askForCommandsUntilQuit(LineReader reader, CommandLineParser parser, CommandExecutor executor) {
+    private void askForCommandsUntilQuit(LineReader reader, CommandLineParser parser, CommandExecutor executor, ServerRequiredParams serverRequiredParams) {
         String line;
-        ServerRequiredParams serverRequiredParams= ServerRequiredParams.fromProperties(cliHomeProperties);
         while ((line = reader.readLine(getPrompt(serverRequiredParams))) != null) {
                 if (isExitCommand(line)) break;
                 else if (isPropertiesCommand(line)) printHomeProperties();
@@ -155,15 +152,21 @@ public class Shell {
         return serverRequiredParams.getServerName() + ":" + serverRequiredParams.getContext() + ">";
     }
 
-    private void executeCommandAction(CommandLineParser parser, CommandExecutor executor, String line, ServerRequiredParams serverRequiredParams) {
-        Commandable command = parser.parse(line);
+    private void executeSingleCommand(CommandLineParser parser, CommandExecutor executor, String[] args,ServerRequiredParams serverRequiredParams) {
+        System.out.println("Single command execution.");
+        String line = buildCommandLineFromArgs(args);
+        Commandable command = parser.parse(line,serverRequiredParams);
         if (command != null) {
-            command.setMustArgs(Map.of(
-                    Commandable.must_arg_context, serverRequiredParams.getContext(), //e.g. "kprime"
-                    Commandable.must_arg_address, serverRequiredParams.getAddress(),  //e.g. "http://localhost:7000"
-                    Commandable.must_arg_user_name, serverRequiredParams.getUserName(),
-                    Commandable.must_arg_user_pass, serverRequiredParams.getUserPass()
-            ));
+            Commandable commandExecuted = executor.execute(command);
+            if (commandExecuted != null) {
+                printCommandLineResult(commandExecuted.getCommandLine(), commandExecuted.getResult());
+            }
+        }
+    }
+
+    private void executeCommandAction(CommandLineParser parser, CommandExecutor executor, String line, ServerRequiredParams serverRequiredParams) {
+        Commandable command = parser.parse(line,serverRequiredParams);
+        if (command != null) {
             Commandable commandExecuted = executor.execute(command);
             String executeResult = commandExecuted.getResult();
             printCommandLineResult(commandExecuted.getCommandLine(), executeResult);
@@ -190,16 +193,6 @@ public class Shell {
 
     private static void printPair(Object a, Object b) {
         System.out.println("["+a+"]=["+b+"]");
-    }
-
-    private void executeSingleCommand(CommandLineParser parser, CommandExecutor executor, String[] args) {
-        System.out.println("Single command execution.");
-        String line = buildCommandLineFromArgs(args);
-        Commandable command = parser.parse(line);
-        Commandable commandExecuted = executor.execute(command);
-        if (commandExecuted!=null) {
-          printCommandLineResult(commandExecuted.getCommandLine(),commandExecuted.getResult());
-        }
     }
 
     private void printCommandLineOptions(List<String> optsArgs) {
