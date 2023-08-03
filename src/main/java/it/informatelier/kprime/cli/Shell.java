@@ -144,7 +144,8 @@ public class Shell {
             LineReader reader,
             CommandLineParser parser,
             CommandExecutor executor,
-            ServerRequiredParams serverRequiredParams, Properties cliResourceProperties) {
+            ServerRequiredParams serverRequiredParams,
+            Properties cliResourceProperties) {
         String line;
         while ((line = reader.readLine(getPrompt(serverRequiredParams))) != null) {
                 if (isExitCommand(line)) break;
@@ -197,7 +198,6 @@ public class Shell {
         cliHomeProperties.remove(key);
         saveHomeProperty();
         if (key.equals(Commandable.must_arg_context)) serverRequiredParams.setContext("");
-        if (key.equals(Commandable.must_arg_server_name)) serverRequiredParams.setServerName("");
     }
 
     private void setPropertiesAction(String line, ServerRequiredParams serverRequiredParams) {
@@ -208,7 +208,6 @@ public class Shell {
         cliHomeProperties.setProperty(key, value);
         saveHomeProperty();
         if (key.equals(Commandable.must_arg_context)) serverRequiredParams.setContext(value);
-        if (key.equals(Commandable.must_arg_server_name)) serverRequiredParams.setServerName(value);
     }
 
     private void printInfoCli(Properties cliResourceProperties) {
