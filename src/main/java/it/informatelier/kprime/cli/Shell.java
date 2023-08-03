@@ -193,8 +193,11 @@ public class Shell {
 
     private void remPropertiesAction(String line, ServerRequiredParams serverRequiredParams) {
         String[] tokens = line.split(" ");
-        cliHomeProperties.remove(tokens[1].trim());
+        String key = tokens[1].trim();
+        cliHomeProperties.remove(key);
         saveHomeProperty();
+        if (key.equals(Commandable.must_arg_context)) serverRequiredParams.setContext("");
+        if (key.equals(Commandable.must_arg_server_name)) serverRequiredParams.setServerName("");
     }
 
     private void setPropertiesAction(String line, ServerRequiredParams serverRequiredParams) {
