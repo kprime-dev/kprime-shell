@@ -1,5 +1,7 @@
 package it.informatelier.kprime.cli.http;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -66,20 +68,30 @@ public class KPrimeProxy {
                         .setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
                         .header("Content-Type", "application/json;charset=utf-8")
                         .build();
+                HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+                //System.out.println(httpResponse.body());
+                kPrimeDTO.setResponse(httpResponse.body().replaceAll("\"","").replaceAll("\\\\n", "\n"));
             } else {
-                String requestUri = address + request;
+                //String requestUri = address + request;
+                String requestUri = address + "/cli/" + context + "/file/" + request;
                 httpRequest = HttpRequest.newBuilder()
                         .GET()
                         .uri(URI.create(requestUri))
                         .setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
                         .build();
+                HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+                if (httpResponse.statusCode()==200) {
+                    System.out.println(httpResponse.body());
+                    FileWriter fw = new FileWriter(request);
+                    fw.write(httpResponse.body());
+                    fw.close();
+                } else {
+                    kPrimeDTO.setResponse("Response Error ("+httpResponse.statusCode()+")");
+                }
             }
-            HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            //System.out.println(httpResponse.body());
-            kPrimeDTO.setResponse(httpResponse.body().replaceAll("\"","").replaceAll("\\\\n", "\n"));
             //kPrimeDTO.setResponse(charCleaner(httpResponse.body()));
         } catch (Exception e) {
-            //e.printStackTrace();
+            e.printStackTrace();
             System.out.println(e.getCause().toString());
             return new KPrimeDTO();
         }

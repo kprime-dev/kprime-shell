@@ -28,8 +28,9 @@ public class KPGetCommand extends CommandRun {
             setResult("No required "+must_arg_context+" in GET properties.");
             return;
         }
+        String command = String.join("&",getArgTokens());
         setResult(new KPrimeProxy().ask(address,context,kpUser,kpPass,
-                new ModelRequest("GET /project/forcetree/json")).getAnswer());
+                new ModelRequest("GET "+command)).getAnswer());
 
     }
 }
