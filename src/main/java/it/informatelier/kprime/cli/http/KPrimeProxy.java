@@ -75,7 +75,9 @@ public class KPrimeProxy {
                         .build();
             }
             HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            //System.out.println(httpResponse.body());
             kPrimeDTO.setResponse(httpResponse.body().replaceAll("\"","").replaceAll("\\\\n", "\n"));
+            //kPrimeDTO.setResponse(charCleaner(httpResponse.body()));
         } catch (Exception e) {
             //e.printStackTrace();
             System.out.println(e.getCause().toString());
@@ -88,6 +90,12 @@ public class KPrimeProxy {
         return kPrimeDTO;
     }
 
+    public String charCleaner(String body) {
+        return body
+                //.replaceAll("\"","")
+                .replaceAll("\\\\n", "\n")
+                .replaceAll("\\t", " ");
+    }
 
 
     // Sample: 'password=123&custom=secret&username=abc&ts=1570704369823'

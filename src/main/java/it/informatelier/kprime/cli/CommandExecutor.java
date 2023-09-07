@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Execute on host operation system a Command.
+ * Execute on host operating system a Command.
  */
 public class CommandExecutor {
 
@@ -26,6 +26,7 @@ public class CommandExecutor {
                 String message = extractMessage(commandResult);
                 List<String> options = extractOptions(commandResult);
                 String result = "\n--------\n" + message.replace("\\t", ":::") + "\n----------\n";
+                //String result = "\n--------\n" + message + "\n----------\n";
                 commandable.setOptsArgs(options);
                 commandable.setResult(result);
             } else commandable.setResult("No result.");
