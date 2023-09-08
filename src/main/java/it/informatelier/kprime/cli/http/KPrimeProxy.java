@@ -6,6 +6,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Path;
 import java.time.Duration;
 
 public class KPrimeProxy {
@@ -48,17 +49,24 @@ public class KPrimeProxy {
             //Map<Object, Object> data = new HashMap<>();
             //data.put("command", request);
             //System.out.println("KPRIME [" + requestType + "] request:[" + request + "]");
-            HttpRequest.BodyPublisher data = HttpRequest.BodyPublishers.ofString(request);
             HttpRequest httpRequest;
             if (requestType.equals("post")) {
-                String requestUri = address + "/parse";
+                HttpRequest.BodyPublisher data = HttpRequest.BodyPublishers.ofFile(Path.of(request));
+                String requestUri = address + "/cli/" + context + "/file/" + request;
                 httpRequest = HttpRequest.newBuilder()
                         .POST(data)
                         .uri(URI.create(requestUri))
                         .setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
                         .header("Content-Type", "application/x-www-form-urlencoded")
                         .build();
+                HttpResponse<String> httpResponse = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+                if (httpResponse.statusCode()==200) {
+                    System.out.println(httpResponse.body());
+                } else {
+                    kPrimeDTO.setResponse("Response Error ("+httpResponse.statusCode()+")");
+                }
             } else if (requestType.equals("put")) {
+                HttpRequest.BodyPublisher data = HttpRequest.BodyPublishers.ofString(request);
                 String requestUri = address + "/cli/" + context + "/tracecommand";
                 httpRequest = HttpRequest.newBuilder()
                         .PUT(data)

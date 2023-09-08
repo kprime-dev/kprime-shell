@@ -28,8 +28,9 @@ public class KPPostCommand extends CommandRun {
             setResult("No required "+must_arg_context+" in POST properties.");
             return;
         }
+        String command = String.join("",getArgTokens());
         setResult(new KPrimeProxy().ask(address,context,kpUser,kpPass,
-                new ModelRequest("POST help")).getAnswer());
+                new ModelRequest("POST "+command)).getAnswer());
 
     }
 }

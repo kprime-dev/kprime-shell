@@ -113,7 +113,9 @@ public class Shell {
     private static void printUsage(CommandLineParser parser) {
         System.out.println(cliResourceProperties.getProperty("cli.name")+" version: "+ cliResourceProperties.getProperty("cli.version"));
         System.out.println("  Type 'quit' to terminate the program.");
+        System.out.println("  Type one of these:");
         System.out.println(parser.getCommandsUsage());
+        System.out.println("  Any other command will be parsed by KPrime server.");
     }
 
     private void start(Properties cliResourceProperties, String... args) {
